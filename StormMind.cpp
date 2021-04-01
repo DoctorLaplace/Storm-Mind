@@ -11,14 +11,10 @@ int main(){
 
     cout << "Hello, I am the storm..." << endl;
 
-    Neuron spark;
 
-    spark.setActivity(10);
-    cout << spark.getActivity() << endl;
-
-
-    cout << 666 << endl;
-
+    Cybernetic cyber;
+    cyber.value = 9999;
+    cyber.reduceErrorToThreshold(0.000001, 5, 0.9);
 
     return 0;
 }
