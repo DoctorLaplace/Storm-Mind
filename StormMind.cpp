@@ -17,7 +17,7 @@ int main(){
     cout << spark.getActivity() << endl;
 
 
-    cout << 6 << endl;
+    cout << 666 << endl;
 
 
     return 0;
