@@ -16,6 +16,10 @@ int main(){
     spark.setActivity(10);
     cout << spark.getActivity() << endl;
 
+
+    cout << 6 << endl;
+
+
     return 0;
 }
 
