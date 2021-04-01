@@ -2,14 +2,19 @@
 
 
 #include <iostream>
+#include "Thunder.h"
 
-
+using namespace std; using namespace Thunder;
 
 
 int main(){
 
-    std::cout << "Hello, I am the storm..." << std:: endl;
+    cout << "Hello, I am the storm..." << endl;
 
+    Neuron spark;
+
+    spark.setActivity(10);
+    cout << spark.getActivity() << endl;
 
     return 0;
 }
