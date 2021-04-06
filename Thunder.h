@@ -39,6 +39,10 @@ namespace Thunder{
             connectionVec.push_back(newCon);
         }
 
+        void setConnectionTarget(int connectionIndex, Neuron* target){
+            connectionVec[connectionIndex]->connectTarget = target;
+        }
+
         void forwardPropagate(){
             for (size_t i = 0; i < connectionVec.size(); i++){
                 connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
@@ -60,6 +64,11 @@ namespace Thunder{
         std::vector<connection*> getConnectionVec(){
             return connectionVec;
         }
+
+        void replaceConnections(std::vector<connection*> newConnections){
+            connectionVec = newConnections;
+        }
+
 
     private:
         double activity = 0;
@@ -124,6 +133,10 @@ namespace Thunder{
             return membraneVec;
         }
 
+        void setMembraneVec(std::vector<Layer*> newVec){
+            membraneVec = newVec;
+        }
+
         void forwardPropagateMembrane(){
             for (size_t i = 0; i < membraneVec.size(); i++){
                 membraneVec[i]->forwardPropagateLayer();
@@ -153,8 +166,6 @@ namespace Thunder{
 
     public:
 
-
-
         void setPrimeMembrane(Membrane* prime){
             primeMembrane = prime;
         }
@@ -166,31 +177,36 @@ namespace Thunder{
         Neuron* geneCrossConnections(Neuron* n1, Neuron* n2){
             std::vector<Thunder::Neuron::connection*> n1_connections = n1->getConnectionVec();
             std::vector<Thunder::Neuron::connection*> n2_connections = n2->getConnectionVec();
-
             Neuron* hybridNeuron = new Neuron;
 
-            for (int i = 0; i < n1_connections.size(); i++){
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 11);
+            std::cout << "Performing neuron hybridization...  \n";
+            SetConsoleTextAttribute(hConsole, 15);
+
+            for (size_t i = 0; i < n1_connections.size(); i++){
                 Thunder::Neuron::connection*  newHybridConnection = new Thunder::Neuron::connection;
 
                 double n1ConWeight = n1_connections[i]->connectionWeight;
                 double n2ConWeight = n2_connections[i]->connectionWeight;
-                Neuron* n1ConTarget = n1_connections[i]->connectTarget;
-                Neuron* n2ConTarget = n2_connections[i]->connectTarget;
+                Neuron* n1ConTarget = nullptr; //n1_connections[i]->connectTarget;
+                Neuron* n2ConTarget = nullptr; //n2_connections[i]->connectTarget;
                 
-                double random_num = rand() % 100 + 1;
-
                 // Random number between 1 and 100
+                double random_num = rand() % 100 + 1;
                 double random_weight = (rand() % 100 + 1);
                 random_weight = random_weight/10000;
                 random_weight = 0;
 
+                SetConsoleTextAttribute(hConsole, 9);
                 if (random_num >= 50){
                     hybridNeuron->addConnection(n1ConTarget, n1ConWeight+random_weight);
-                    std::cout << "Chosen Parent: 1" << std::endl;
+                    std::cout << "Type-1" << std::endl;
                 }else{
                     hybridNeuron->addConnection(n2ConTarget, n2ConWeight+random_weight);
-                    std::cout << "Chosen Parent: 2" << std::endl;
+                    std::cout << "Type-2" << std::endl;
                 }       
+                SetConsoleTextAttribute(hConsole, 15);
             }
             // Return the created randomized neuron;
             return hybridNeuron;
@@ -199,8 +215,10 @@ namespace Thunder{
         Layer* geneCrossLayers(Layer* l1, Layer* l2){
             std::vector<Neuron*> l1_neuron_vec = l1->getLayerVec();
             std::vector<Neuron*> l2_neuron_vec = l2->getLayerVec();
-            std::cout << "Layer Size: " << l1->getLayerVec().size() << "\n";
-
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 10);
+            std::cout << "Performing layer hybridization...  Size-" << l1_neuron_vec.size() << "\n";
+            SetConsoleTextAttribute(hConsole, 15);
             Layer* newHybridLayer = new Layer;
             for (size_t i = 0; i < l1_neuron_vec.size(); i++){
                 Neuron* newHybridNeuron = new Neuron;
@@ -212,11 +230,44 @@ namespace Thunder{
 
         } 
 
+        Membrane* geneCrossMembranes(Membrane* m1, Membrane* m2){
+            std::vector<Layer*> m1_layer_vec = m1->getMembraneVec();
+            std::vector<Layer*> m2_layer_vec = m2->getMembraneVec();
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 13);
+            std::cout << "Performing membrane hybridization...  Depth-" << m1_layer_vec.size() << "\n";
+            SetConsoleTextAttribute(hConsole, 15);
 
+            Membrane* newHybridMembrane = new Membrane;
+            for (size_t i = 0; i < m1_layer_vec.size(); i++){
+                Layer* newHybridLayer = new Layer;
+                newHybridLayer = geneCrossLayers(m1_layer_vec[i], m2_layer_vec[i]);
+                newHybridMembrane->addLayerToMembrane(newHybridLayer);
+            }
 
-        void geneCrossMembranes(){
-            
+            return newHybridMembrane;
         }
+
+
+        void formLayerToLayer(Layer* l1, Layer* l2){
+            for (size_t i = 0; i < l1->getLayerVec().size(); i++){
+                for (size_t k = 0; k < l2->getLayerVec().size(); k++){
+                    l1->getLayerVec()[i]->setConnectionTarget(k, l2->getLayerVec()[k]);
+                }
+            }
+        }
+
+        void formMembraneConnections(Membrane* m){
+            std::vector<Layer*> membraneVec = m->getMembraneVec();
+            //std::cout << membraneVec.size() << std::endl;
+            for (size_t i = 0; i < membraneVec.size() - 1; i++){
+                formLayerToLayer(membraneVec[i], membraneVec[i+1]);
+            }
+        }
+
+        
+
+
 
     };
 
