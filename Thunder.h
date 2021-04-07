@@ -379,6 +379,30 @@ namespace Thunder{
             }
 
 
+            double multiEvaluateMembraneFitness(Membrane* m, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet){
+                double totalScore = 0;
+                for (size_t i = 0; i < inputSet.size(); i++){
+                    totalScore += evaluateMembraneFitness(m, inputSet[i], desiredOutputSet[i]);
+                }
+                return totalScore;
+            }
+
+
+
+            std::vector<Membrane*> produceMultiMembraneStrain(std::vector<Membrane*> geneticPopulation, int strainSize = 10){
+                // Random number between 0 and geneticPopulation.size()
+                double random_num1 = rand() % (geneticPopulation.size());
+                double random_num2 = rand() % (geneticPopulation.size());
+                std::vector<Membrane*> strain;
+                for (size_t i = 0; i < strainSize; i++){
+                    Membrane* newMembrane = produceHybrid(geneticPopulation[random_num1], geneticPopulation[random_num2]);
+                    strain.push_back(newMembrane);
+                }
+                return strain;
+            }
+
+
+
             std::vector<Membrane*> produceMembraneStrain(Membrane* m1, Membrane* m2, int strainSize = 10){
                 std::vector<Membrane*> strain;
                 for (size_t i = 0; i < strainSize; i++){
