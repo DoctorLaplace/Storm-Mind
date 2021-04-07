@@ -23,27 +23,27 @@ int main(){
 
 
     //cout << "Minrae:\n";
-    std::vector<int> shapeA = {4,22,22,4};
+    std::vector<int> shapeA = {4,8,4};
     Membrane* minrae = zurel.produceMembrane(shapeA, 1);
     minrae->forwardPropagateMembrane();
     //minrae->displayMembrane();
 
     //cout << "Arkath:\n";
-    shapeA = {4,22,22,4};
+    shapeA = {4,8,4};
     Membrane* arkath = zurel.produceMembrane(shapeA, 0);
     arkath->forwardPropagateMembrane();
     //arkath->displayMembrane();
 
 
     std::vector<double> imp = {1, 0.5, 1, 1};
-    std::vector<double> desired = {1, 0, 1, 0};
+    std::vector<double> desired = {1, 1, 1, 0};
 
     std::vector<Membrane*> arkraeStrain = zurel.produceMembraneStrain(minrae, arkath);
 
     cout << "Testing Fitness..." << endl;
 
     Membrane* strongestSpecimen;
-    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 4, 150);
+    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 15, 1000);
 
     cout << "Strongest Membrane has been found..." << endl;
 
