@@ -104,6 +104,14 @@ namespace Thunder{
                 }
             }
 
+            void silenceLayerActivity(){
+                for (size_t i = 0; i < layerVec.size(); i++){
+                    layerVec[i]->setActivity(0);
+                    //layerVec[i]->displayConnections();
+                }
+            }
+
+
             void displayLayer(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 10);
@@ -144,6 +152,13 @@ namespace Thunder{
                 }
             }
 
+            void silenceMembrane(){
+                for (size_t i = 0; i < membraneVec.size(); i++){
+                    membraneVec[i]->silenceLayerActivity();
+                }
+            }
+
+
             void displayMembrane(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 13);
@@ -175,15 +190,18 @@ namespace Thunder{
                 primeMembrane = secondary;
             }
 
-            Neuron* geneCrossConnections(Neuron* n1, Neuron* n2){
+            Neuron* geneCrossConnections(Neuron* n1, Neuron* n2, bool showProcess = false){
                 std::vector<Thunder::Neuron::connection*> n1_connections = n1->getConnectionVec();
                 std::vector<Thunder::Neuron::connection*> n2_connections = n2->getConnectionVec();
                 Neuron* hybridNeuron = new Neuron;
 
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-                SetConsoleTextAttribute(hConsole, 11);
-                std::cout << "Performing neuron hybridization...  \n";
-                SetConsoleTextAttribute(hConsole, 15);
+                if (showProcess == true){
+                    SetConsoleTextAttribute(hConsole, 11);
+                    std::cout << "Performing neuron hybridization...  \n";
+                    SetConsoleTextAttribute(hConsole, 15);
+                }
+                
 
                 for (size_t i = 0; i < n1_connections.size(); i++){
                     Thunder::Neuron::connection*  newHybridConnection = new Thunder::Neuron::connection;
@@ -195,17 +213,22 @@ namespace Thunder{
                     
                     // Random number between 1 and 100
                     double random_num = rand() % 100 + 1;
-                    double random_weight = (rand() % 100 + 1);
-                    random_weight = random_weight/10000;
-                    random_weight = 0;
+                    double random_weight = (rand() % 100 + 1) - 50;
+                    random_weight = random_weight/100000;
+                    //random_weight = 0;
 
                     SetConsoleTextAttribute(hConsole, 9);
                     if (random_num >= 50){
                         hybridNeuron->addConnection(n1ConTarget, n1ConWeight+random_weight);
-                        std::cout << "Type-1" << std::endl;
+                        if (showProcess == true){
+                            std::cout << "Type-1" << std::endl;
+                        }
+                        
                     }else{
                         hybridNeuron->addConnection(n2ConTarget, n2ConWeight+random_weight);
-                        std::cout << "Type-2" << std::endl;
+                        if (showProcess == true){
+                            std::cout << "Type-2" << std::endl;
+                        }
                     }       
                     SetConsoleTextAttribute(hConsole, 15);
                 }
@@ -213,17 +236,20 @@ namespace Thunder{
                 return hybridNeuron;
             } 
 
-            Layer* geneCrossLayers(Layer* l1, Layer* l2){
+            Layer* geneCrossLayers(Layer* l1, Layer* l2, bool showProcess = false){
                 std::vector<Neuron*> l1_neuron_vec = l1->getLayerVec();
                 std::vector<Neuron*> l2_neuron_vec = l2->getLayerVec();
-                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-                SetConsoleTextAttribute(hConsole, 10);
-                std::cout << "Performing layer hybridization...  Size-" << l1_neuron_vec.size() << "\n";
-                SetConsoleTextAttribute(hConsole, 15);
+                if (showProcess == true){
+                    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                    SetConsoleTextAttribute(hConsole, 10);
+                    std::cout << "Performing layer hybridization...  Size-" << l1_neuron_vec.size() << "\n";
+                    SetConsoleTextAttribute(hConsole, 15);
+                }
+                
                 Layer* newHybridLayer = new Layer;
                 for (size_t i = 0; i < l1_neuron_vec.size(); i++){
                     Neuron* newHybridNeuron = new Neuron;
-                    newHybridNeuron = geneCrossConnections(l1_neuron_vec[i], l2_neuron_vec[i]);
+                    newHybridNeuron = geneCrossConnections(l1_neuron_vec[i], l2_neuron_vec[i], showProcess);
                     newHybridLayer->addNeuronToLayer(newHybridNeuron);
                 }
 
@@ -231,18 +257,22 @@ namespace Thunder{
 
             } 
 
-            Membrane* geneCrossMembranes(Membrane* m1, Membrane* m2){
+            Membrane* geneCrossMembranes(Membrane* m1, Membrane* m2, bool showProcess = false){
                 std::vector<Layer*> m1_layer_vec = m1->getMembraneVec();
                 std::vector<Layer*> m2_layer_vec = m2->getMembraneVec();
-                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-                SetConsoleTextAttribute(hConsole, 13);
-                std::cout << "Performing membrane hybridization...  Depth-" << m1_layer_vec.size() << "\n";
-                SetConsoleTextAttribute(hConsole, 15);
+
+                if (showProcess == true){
+                    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                    SetConsoleTextAttribute(hConsole, 13);
+                    std::cout << "Performing membrane hybridization...  Depth-" << m1_layer_vec.size() << "\n";
+                    SetConsoleTextAttribute(hConsole, 15);
+                }
+                
 
                 Membrane* newHybridMembrane = new Membrane;
                 for (size_t i = 0; i < m1_layer_vec.size(); i++){
                     Layer* newHybridLayer = new Layer;
-                    newHybridLayer = geneCrossLayers(m1_layer_vec[i], m2_layer_vec[i]);
+                    newHybridLayer = geneCrossLayers(m1_layer_vec[i], m2_layer_vec[i], showProcess);
                     newHybridMembrane->addLayerToMembrane(newHybridLayer);
                 }
 
@@ -303,6 +333,102 @@ namespace Thunder{
                 return newMembrane;
             }
 
+            void imprintInputs(std::vector<double> imprint, Membrane* m){
+                Layer* inputLayer = m->getMembraneVec()[0];
+                for (size_t i = 0; i < imprint.size(); i++){
+                    double imprintActivity = imprint[i];
+                    inputLayer->getLayerVec()[i]->setActivity(imprintActivity);
+                }
+            }
+
+            std::vector<double> sampleOutputs(Membrane* m){
+                int membraneSize = m->getMembraneVec().size();
+                Layer* lastLayer = m->getMembraneVec()[membraneSize - 1];
+                int layerSize = lastLayer->getLayerVec().size();
+                std::vector<double> outputs;
+                for (size_t i = 0; i < layerSize; i++){
+                    outputs.push_back(lastLayer->getLayerVec()[i]->getActivity());
+                }
+                return outputs;
+            }
+
+            std::vector<double> comparePerformance(std::vector<double> desired, std::vector<double> actual){
+                std::vector<double> performance;
+                for (size_t i = 0; i < desired.size(); i++){
+                    performance.push_back(abs(desired[i] - actual[i]));
+                }
+                return performance;
+            }
+
+            double scorePerformance(std::vector<double> performance){
+                double score = 0;
+                for (size_t i = 0; i < performance.size(); i++){
+                    score += performance[i];
+                }
+                return score;
+            }
+
+            double evaluateMembraneFitness(Membrane* m, std::vector<double> input, std::vector<double> desiredOutput){
+                m->silenceMembrane();
+                imprintInputs(input, m);
+                m->forwardPropagateMembrane();
+                std::vector<double> membraneOutputs = sampleOutputs(m);
+                std::vector<double> performance = comparePerformance(desiredOutput, membraneOutputs);
+                double score = scorePerformance(performance);
+                return score;
+            }
+
+
+            std::vector<Membrane*> produceMembraneStrain(Membrane* m1, Membrane* m2, int strainSize = 10){
+                std::vector<Membrane*> strain;
+                for (size_t i = 0; i < strainSize; i++){
+                    Membrane* newMembrane = produceHybrid(m1, m2);
+                    strain.push_back(newMembrane);
+                }
+                return strain;
+            }
+
+            Membrane* selectStrongestMembrane(std::vector<Membrane*> strain, std::vector<double> input, std::vector<double> desiredOutput){
+                int strongestMembraneIndex = 0;
+                double strongestMembraneScore = evaluateMembraneFitness(strain[0], input, desiredOutput);
+                double membraneScore = 0;
+                for (size_t i = 0; i < strain.size(); i++){      
+                    membraneScore = evaluateMembraneFitness(strain[i], input, desiredOutput);
+                    //std::cout << membraneScore << std::endl;
+                    if (membraneScore < strongestMembraneScore){
+                        strongestMembraneScore = membraneScore;
+                        strongestMembraneIndex = i;
+                        //std::cout << "New fittest membrane..." << std::endl;
+                    }
+                }
+
+                return strain[strongestMembraneIndex];
+            }
+
+
+            Membrane* evolveOptimalMembrane(std::vector<int> membraneShape, Membrane* m1, Membrane* m2, std::vector<double> input, std::vector<double> desiredOutput, int generationCount = 5, int strainSize = 20){
+                Membrane* strongestSpecimen1 = m1;
+                Membrane* strongestSpecimen2 = m2;
+                
+                for (size_t i = 0; i < generationCount; i++){
+                    std::cout << "Generation " << i << "..." << std::endl;
+                    std::vector<Membrane*> strain1 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize);
+                    
+                    // double random_weight = (rand() % 100 + 1) - 50;
+                    // random_weight = random_weight/100;
+                    // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
+
+                    std::vector<Membrane*> strain2 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize);
+                    strain1.push_back(strongestSpecimen1);
+                    strain2.push_back(strongestSpecimen2);
+
+                    strongestSpecimen1 = selectStrongestMembrane(strain1, input, desiredOutput);
+                    strongestSpecimen2 = selectStrongestMembrane(strain2, input, desiredOutput);
+                    std::cout << "    -Performance: " << scorePerformance(comparePerformance(desiredOutput,sampleOutputs(strongestSpecimen1))) << std::endl;
+                }
+
+                return strongestSpecimen1;
+            }
 
 
 

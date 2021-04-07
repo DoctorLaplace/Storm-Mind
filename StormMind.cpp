@@ -22,21 +22,51 @@ int main(){
     Evolver zurel;
 
 
-    cout << "Minrae:\n";
-    std::vector<int> shapeA = {4,8,4,4};
-    Membrane* minrae = zurel.produceMembrane(shapeA, 0.5);
+    //cout << "Minrae:\n";
+    std::vector<int> shapeA = {4,22,22,4};
+    Membrane* minrae = zurel.produceMembrane(shapeA, 1);
     minrae->forwardPropagateMembrane();
-    minrae->displayMembrane();
+    //minrae->displayMembrane();
 
-    cout << "Arkath:\n";
-    shapeA = {4,8,4,4};
-    Membrane* arkath = zurel.produceMembrane(shapeA, 0.1);
+    //cout << "Arkath:\n";
+    shapeA = {4,22,22,4};
+    Membrane* arkath = zurel.produceMembrane(shapeA, 0);
     arkath->forwardPropagateMembrane();
-    arkath->displayMembrane();
+    //arkath->displayMembrane();
 
-    Membrane* cylus = zurel.produceHybrid(minrae, arkath);
-    cylus->forwardPropagateMembrane();
-    cylus->displayMembrane();
+
+    std::vector<double> imp = {1, 0.5, 1, 1};
+    std::vector<double> desired = {1, 0, 1, 0};
+
+    std::vector<Membrane*> arkraeStrain = zurel.produceMembraneStrain(minrae, arkath);
+
+    cout << "Testing Fitness..." << endl;
+
+    Membrane* strongestSpecimen;
+    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 4, 150);
+
+    cout << "Strongest Membrane has been found..." << endl;
+
+    //strongestSpecimen->displayMembrane();
+    cout << "Performance: " << zurel.scorePerformance(zurel.comparePerformance(desired,zurel.sampleOutputs(strongestSpecimen))) << endl;
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp,strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->getMembraneVec().back()->displayLayer();;
+
+    // Make a function that scores a membrane
+    // based on how well it does against a batch
+    // of training data
+
+
+
+
+
+
+
+
+
 
 
 
