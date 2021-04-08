@@ -22,7 +22,7 @@ int main(){
     Evolver zurel;
 
 
-    std::vector<int> shapeA = {4,  4};
+    std::vector<int> shapeA = {3, 4, 1};
 
     //cout << "Minrae:\n";
     Membrane* minrae = zurel.produceMembrane(shapeA, 1);
@@ -41,8 +41,8 @@ int main(){
 
 
 
-    std::vector<double> imp = {1, 0, 0, 0};
-    std::vector<double> desired = {0, 0, 0, 1};
+    std::vector<double> imp = {0,0, 1};
+    std::vector<double> desired = {0};
 
     std::vector<Membrane*> arkraeStrain = zurel.produceMembraneStrain(minrae, arkath);
 
@@ -64,14 +64,14 @@ int main(){
 
 
 
-    std::vector<double> imp2 = {0, 1, 0, 0};
-    std::vector<double> desired2 = {0, 0, 1, 0};
+    std::vector<double> imp2 = {0, 1, 1};
+    std::vector<double> desired2 = {1};
 
-    std::vector<double> imp3 = {0, 0, 1, 0};
-    std::vector<double> desired3 = {0.5, 1, 0.5, 0.5};
+    std::vector<double> imp3 = {1, 0, 1};
+    std::vector<double> desired3 = {1};
 
-    std::vector<double> imp4 = {0, 0, 0, 1};
-    std::vector<double> desired4 = {1, 0, 0, 0};
+    std::vector<double> imp4 = {1, 1, 1};
+    std::vector<double> desired4 = {0};
 
 
 
@@ -82,50 +82,64 @@ int main(){
     vector<Membrane*> population = {lemrox, minrae, arkath};
     cout << "Testing Fitness..." << endl;
 
-    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 1200, 3, 2, 0.00005);
+    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 100, 100, 5, 0.001);
     cout << "Strongest Membrane has been found..." << endl;
 
     strongestSpecimen->silenceMembrane();
     zurel.imprintInputs(imp,strongestSpecimen);
     strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->displayMembrane();
 
     strongestSpecimen->silenceMembrane();
     zurel.imprintInputs(imp2,strongestSpecimen);
     strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->displayMembrane();
 
     strongestSpecimen->silenceMembrane();
     zurel.imprintInputs(imp3,strongestSpecimen);
     strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->displayMembrane();
 
     strongestSpecimen->silenceMembrane();
     zurel.imprintInputs(imp4,strongestSpecimen);
     strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->displayMembrane();
 
 
-
+    //strongestSpecimen->displayMembrane();
     cout << "Total Performance: ";
     cout << zurel.multiEvaluateMembraneFitness(strongestSpecimen, inSet, desiredSet) << endl;
 
 
-    strongestSpecimen->silenceMembrane();
-    zurel.imprintInputs({0, 0, 0, 1},strongestSpecimen);
-    strongestSpecimen->forwardPropagateMembrane();
-    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 0){
-        cout << "First Neuron\n";
+    string userInput;
+    double in1, in2;
+    while (userInput != "exit"){
+        
+            cout << "N1: ";
+            cin >> userInput;
+            if (userInput != "exit"){
+                in1 = stoi(userInput);
+                cout << "N2: ";
+                cin >> userInput;
+                if (userInput != "exit"){
+                    in2 = stoi(userInput);
+                }
+            }
+            
+            if (userInput != "exit"){
+                strongestSpecimen->silenceMembrane();
+                zurel.imprintInputs({in1, in2, 1},strongestSpecimen);
+                strongestSpecimen->forwardPropagateMembrane();
+                strongestSpecimen->displayFinalLayer();
+                if (zurel.sampleOutputs(strongestSpecimen)[0] >= 0.5){
+                    cout << "First Neuron Activated\n";
+                }else{
+                    cout << "First Neuron Silent\n";
+                }
+            }
+            
     }
-    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 1){
-        cout << "Second Neuron\n";
-    }
-    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 2){
-        cout << "Third Neuron\n";
-    }
-    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 3){
-        cout << "Fourth Neuron\n";
-    }
+
 
     return 0;
 }

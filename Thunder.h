@@ -52,10 +52,18 @@ namespace Thunder{
                 connectionVec[connectionIndex]->connectTarget = target;
             }
 
-            void forwardPropagate(){
+            void forwardPropagate(std::string mode = "threshold"){
                 for (size_t i = 0; i < connectionVec.size(); i++){
                     //std::cout << "Impulse " << activity*connectionVec[i]->connectionWeight << " sent to: " << connectionVec[i]->connectTarget << "\n";
-                    connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
+                    
+                    if (mode == "threshold"){
+                        if (activity > 0.5){
+                            connectionVec[i]->connectTarget->activity += ((2*activity)-1)*connectionVec[i]->connectionWeight;
+                        }
+                    }
+                    if (mode == "none"){
+                        connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
+                    }
                 } 
             }
 
