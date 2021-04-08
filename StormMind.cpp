@@ -8,7 +8,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <random>
-
+#include <string>
 
 using namespace std; using namespace Thunder;
 
