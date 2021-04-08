@@ -368,6 +368,7 @@ namespace Thunder{
                 return score;
             }
 
+
             double evaluateMembraneFitness(Membrane* m, std::vector<double> input, std::vector<double> desiredOutput){
                 m->silenceMembrane();
                 imprintInputs(input, m);
@@ -377,31 +378,6 @@ namespace Thunder{
                 double score = scorePerformance(performance);
                 return score;
             }
-
-
-            double multiEvaluateMembraneFitness(Membrane* m, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet){
-                double totalScore = 0;
-                for (size_t i = 0; i < inputSet.size(); i++){
-                    totalScore += evaluateMembraneFitness(m, inputSet[i], desiredOutputSet[i]);
-                }
-                return totalScore;
-            }
-
-
-
-            std::vector<Membrane*> produceMultiMembraneStrain(std::vector<Membrane*> geneticPopulation, int strainSize = 10){
-                // Random number between 0 and geneticPopulation.size()
-                double random_num1 = rand() % (geneticPopulation.size());
-                double random_num2 = rand() % (geneticPopulation.size());
-                std::vector<Membrane*> strain;
-                for (size_t i = 0; i < strainSize; i++){
-                    Membrane* newMembrane = produceHybrid(geneticPopulation[random_num1], geneticPopulation[random_num2]);
-                    strain.push_back(newMembrane);
-                }
-                return strain;
-            }
-
-
 
             std::vector<Membrane*> produceMembraneStrain(Membrane* m1, Membrane* m2, int strainSize = 10){
                 std::vector<Membrane*> strain;
@@ -430,6 +406,67 @@ namespace Thunder{
             }
 
 
+
+            double multiEvaluateMembraneFitness(Membrane* m, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet){
+                double totalScore = 0;
+                for (size_t i = 0; i < inputSet.size(); i++){
+                    totalScore += evaluateMembraneFitness(m, inputSet[i], desiredOutputSet[i]);
+                }
+                return totalScore;
+            }
+
+            std::vector<Membrane*> produceMultiMembraneStrain(std::vector<Membrane*> geneticPopulation, int strainSize = 10){
+                std::vector<Membrane*> strain;
+                double random_num1;
+                double random_num2;
+                for (size_t i = 0; i < strainSize; i++){
+                    // Random number between 0 and geneticPopulation.size() 
+                    random_num1 = rand() % (geneticPopulation.size());
+                    random_num2 = rand() % (geneticPopulation.size());
+                    while (random_num1 == random_num2){
+                        random_num2 = rand() % (geneticPopulation.size());
+                    }
+                    Membrane* newMembrane = produceHybrid(geneticPopulation[random_num1], geneticPopulation[random_num2]);
+                    strain.push_back(newMembrane);
+                    //std::cout << "Parent 1: " << geneticPopulation[random_num1] << std::endl;
+                    //std::cout << "Parent 2: " << geneticPopulation[random_num2] << std::endl;
+                }
+                return strain;
+            }
+
+            std::vector<Membrane*> multiSelectStrongestMembrane(std::vector<Membrane*> strain, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet, int selectionSize = 1){
+                // strain
+                // inputSet
+                // desiredOutputSet
+                std::vector<Membrane*> strongestMembraneSet;
+
+                // Selection Set Size cannot be more than the strain size!
+                for (size_t x = 0; x < selectionSize; x++){
+                    int strongestMembraneIndex = 0;
+                    double strongestMembraneScore = multiEvaluateMembraneFitness(strain[0], inputSet, desiredOutputSet);
+                    double membraneScore = 0;
+
+                    for (size_t i = 0; i < strain.size(); i++){      
+                        membraneScore = multiEvaluateMembraneFitness(strain[i], inputSet, desiredOutputSet);
+                        //std::cout << membraneScore << std::endl;
+                        if (membraneScore < strongestMembraneScore){
+                            strongestMembraneScore = membraneScore;
+                            strongestMembraneIndex = i;
+                            //std::cout << "New fittest membrane..." << std::endl;
+                        }
+                    }
+
+                    //std::cout << "Added: " << strain[strongestMembraneIndex] << std::endl;
+                    strongestMembraneSet.push_back(strain[strongestMembraneIndex]);
+                    strain.erase(strain.begin() + strongestMembraneIndex);
+                    
+                }
+
+                return strongestMembraneSet;
+                
+            }
+
+
             Membrane* evolveOptimalMembrane(std::vector<int> membraneShape, Membrane* m1, Membrane* m2, std::vector<double> input, std::vector<double> desiredOutput, int generationCount = 5, int strainSize = 20){
                 Membrane* strongestSpecimen1 = m1;
                 Membrane* strongestSpecimen2 = m2;
@@ -452,6 +489,31 @@ namespace Thunder{
                 }
 
                 return strongestSpecimen1;
+            }
+
+
+            Membrane* evolveOptimalMembraneMulti(std::vector<int> membraneShape, std::vector<Membrane*> geneticPopulation, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet, int generationCount = 5, int strainSize = 20, int numberOfStrongest = 2){
+                std::vector<Membrane*> strongestMembraneSet = geneticPopulation;
+
+
+                membraneShape = membraneShape;
+
+                for (size_t i = 0; i < generationCount; i++){
+                    std::cout << "Generation " << i << "..." << std::endl;
+                    std::vector<Membrane*> strain1 = produceMultiMembraneStrain(strongestMembraneSet, strainSize);
+                    // double random_weight = (rand() % 100 + 1) - 50;
+                    // random_weight = random_weight/100;
+                    // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
+
+                    strongestMembraneSet = multiSelectStrongestMembrane(strain1, inputSet, desiredOutputSet, numberOfStrongest);
+
+                    for (int k = 0; k < strongestMembraneSet.size(); k++){
+                        double performance = multiEvaluateMembraneFitness(strongestMembraneSet[k], inputSet, desiredOutputSet);
+                        std::cout << "    -Strongest " << k << " Performance: " << performance << std::endl;
+                    }
+                }
+
+                return strongestMembraneSet[0];
             }
 
 

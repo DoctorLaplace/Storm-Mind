@@ -22,28 +22,34 @@ int main(){
     Evolver zurel;
 
 
+    std::vector<int> shapeA = {4, 16};
+
     //cout << "Minrae:\n";
-    std::vector<int> shapeA = {4,8};
     Membrane* minrae = zurel.produceMembrane(shapeA, 1);
     minrae->forwardPropagateMembrane();
     //minrae->displayMembrane();
 
     //cout << "Arkath:\n";
-    shapeA = {4,8};
     Membrane* arkath = zurel.produceMembrane(shapeA, 0);
     arkath->forwardPropagateMembrane();
     //arkath->displayMembrane();
 
+    //cout << "Lemrox:\n";
+    Membrane* lemrox = zurel.produceMembrane(shapeA, 0.5);
+    lemrox->forwardPropagateMembrane();
+    //lemrox->displayMembrane();
+
+
 
     std::vector<double> imp = {1, 0.5, 1, 1};
-    std::vector<double> desired = {0, 0, 0, 0, 1, 0, 1, 0};
+    std::vector<double> desired = {0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1};
 
     std::vector<Membrane*> arkraeStrain = zurel.produceMembraneStrain(minrae, arkath);
 
     cout << "Testing Fitness..." << endl;
 
     Membrane* strongestSpecimen;
-    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 15, 50);
+    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 14, 200);
 
     cout << "Strongest Membrane has been found..." << endl;
 
@@ -60,14 +66,15 @@ int main(){
     // of training data
     //
 
+    std::vector<std::vector<double>> inSet = {imp};
+    std::vector<std::vector<double>> desiredSet = {desired};
 
-    
+    vector<Membrane*> population = {lemrox, minrae, arkath};
+    cout << "Testing Fitness..." << endl;
 
-
-
-
-
-
+    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 14, 200, 50);
+    cout << "Strongest Membrane has been found..." << endl;
+    cout << "Performance: " << zurel.scorePerformance(zurel.comparePerformance(desired,zurel.sampleOutputs(strongestSpecimen))) << endl;
 
 
 
