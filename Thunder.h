@@ -14,6 +14,15 @@
 
 namespace Thunder{
 
+    int findLargetsIndex(std::vector<double> vec){
+        int largestIndex = 0;
+        for (int i = 0; i < vec.size(); i++){
+            if (vec[i] > vec[largestIndex]){
+                largestIndex = i;
+            }
+        }
+        return largestIndex;
+    }
 
     class Neuron {
 
@@ -169,6 +178,15 @@ namespace Thunder{
                 SetConsoleTextAttribute(hConsole, 15);
             }
 
+            void displayFinalLayer(){
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, 13);
+                std::cout << "Final Membrane Layer: \n";
+                int size = membraneVec.size() - 1;
+                membraneVec[size]->displayLayer();
+                SetConsoleTextAttribute(hConsole, 15);
+            }
+
     };
 
 
@@ -190,7 +208,7 @@ namespace Thunder{
                 primeMembrane = secondary;
             }
 
-            Neuron* geneCrossConnections(Neuron* n1, Neuron* n2, bool showProcess = false){
+            Neuron* geneCrossConnections(Neuron* n1, Neuron* n2, double mutationRate = 0.0001, bool showProcess = false){
                 std::vector<Thunder::Neuron::connection*> n1_connections = n1->getConnectionVec();
                 std::vector<Thunder::Neuron::connection*> n2_connections = n2->getConnectionVec();
                 Neuron* hybridNeuron = new Neuron;
@@ -213,8 +231,8 @@ namespace Thunder{
                     
                     // Random number between 1 and 100
                     double random_num = rand() % 100 + 1;
-                    double random_weight = (rand() % 100 + 1) - 50;
-                    random_weight = random_weight/100000;
+                    double random_weight = (rand() % 1000 + 1) - 500;
+                    random_weight = random_weight*mutationRate;
                     //random_weight = 0;
 
                     SetConsoleTextAttribute(hConsole, 9);
@@ -236,7 +254,7 @@ namespace Thunder{
                 return hybridNeuron;
             } 
 
-            Layer* geneCrossLayers(Layer* l1, Layer* l2, bool showProcess = false){
+            Layer* geneCrossLayers(Layer* l1, Layer* l2, double mutationRate = 0.0001, bool showProcess = false){
                 std::vector<Neuron*> l1_neuron_vec = l1->getLayerVec();
                 std::vector<Neuron*> l2_neuron_vec = l2->getLayerVec();
                 if (showProcess == true){
@@ -249,7 +267,7 @@ namespace Thunder{
                 Layer* newHybridLayer = new Layer;
                 for (size_t i = 0; i < l1_neuron_vec.size(); i++){
                     Neuron* newHybridNeuron = new Neuron;
-                    newHybridNeuron = geneCrossConnections(l1_neuron_vec[i], l2_neuron_vec[i], showProcess);
+                    newHybridNeuron = geneCrossConnections(l1_neuron_vec[i], l2_neuron_vec[i], mutationRate, showProcess);
                     newHybridLayer->addNeuronToLayer(newHybridNeuron);
                 }
 
@@ -257,7 +275,7 @@ namespace Thunder{
 
             } 
 
-            Membrane* geneCrossMembranes(Membrane* m1, Membrane* m2, bool showProcess = false){
+            Membrane* geneCrossMembranes(Membrane* m1, Membrane* m2, double mutationRate = 0.0001, bool showProcess = false){
                 std::vector<Layer*> m1_layer_vec = m1->getMembraneVec();
                 std::vector<Layer*> m2_layer_vec = m2->getMembraneVec();
 
@@ -272,7 +290,7 @@ namespace Thunder{
                 Membrane* newHybridMembrane = new Membrane;
                 for (size_t i = 0; i < m1_layer_vec.size(); i++){
                     Layer* newHybridLayer = new Layer;
-                    newHybridLayer = geneCrossLayers(m1_layer_vec[i], m2_layer_vec[i], showProcess);
+                    newHybridLayer = geneCrossLayers(m1_layer_vec[i], m2_layer_vec[i], mutationRate, showProcess);
                     newHybridMembrane->addLayerToMembrane(newHybridLayer);
                 }
 
@@ -299,9 +317,9 @@ namespace Thunder{
                 }
             }
 
-            Membrane* produceHybrid(Membrane* m1, Membrane* m2){
+            Membrane* produceHybrid(Membrane* m1, Membrane* m2, double mutationRate = 0.0001){
                 Membrane* newHybrid = new Membrane;
-                newHybrid = geneCrossMembranes(m1, m2);
+                newHybrid = geneCrossMembranes(m1, m2, mutationRate);
                 formMembraneConnections(newHybrid);
                 return newHybrid;
             }
@@ -379,10 +397,10 @@ namespace Thunder{
                 return score;
             }
 
-            std::vector<Membrane*> produceMembraneStrain(Membrane* m1, Membrane* m2, int strainSize = 10){
+            std::vector<Membrane*> produceMembraneStrain(Membrane* m1, Membrane* m2, int strainSize = 10, double mutationRate = 0.0001){
                 std::vector<Membrane*> strain;
                 for (size_t i = 0; i < strainSize; i++){
-                    Membrane* newMembrane = produceHybrid(m1, m2);
+                    Membrane* newMembrane = produceHybrid(m1, m2, mutationRate);
                     strain.push_back(newMembrane);
                 }
                 return strain;
@@ -415,7 +433,7 @@ namespace Thunder{
                 return totalScore;
             }
 
-            std::vector<Membrane*> produceMultiMembraneStrain(std::vector<Membrane*> geneticPopulation, int strainSize = 10){
+            std::vector<Membrane*> produceMultiMembraneStrain(std::vector<Membrane*> geneticPopulation, int strainSize = 10, double mutationRate = 0.0001){
                 std::vector<Membrane*> strain;
                 double random_num1;
                 double random_num2;
@@ -426,7 +444,7 @@ namespace Thunder{
                     while (random_num1 == random_num2){
                         random_num2 = rand() % (geneticPopulation.size());
                     }
-                    Membrane* newMembrane = produceHybrid(geneticPopulation[random_num1], geneticPopulation[random_num2]);
+                    Membrane* newMembrane = produceHybrid(geneticPopulation[random_num1], geneticPopulation[random_num2], mutationRate);
                     strain.push_back(newMembrane);
                     //std::cout << "Parent 1: " << geneticPopulation[random_num1] << std::endl;
                     //std::cout << "Parent 2: " << geneticPopulation[random_num2] << std::endl;
@@ -467,19 +485,19 @@ namespace Thunder{
             }
 
 
-            Membrane* evolveOptimalMembrane(std::vector<int> membraneShape, Membrane* m1, Membrane* m2, std::vector<double> input, std::vector<double> desiredOutput, int generationCount = 5, int strainSize = 20){
+            Membrane* evolveOptimalMembrane(std::vector<int> membraneShape, Membrane* m1, Membrane* m2, std::vector<double> input, std::vector<double> desiredOutput, int generationCount = 5, int strainSize = 20, double mutationRate = 0.0001){
                 Membrane* strongestSpecimen1 = m1;
                 Membrane* strongestSpecimen2 = m2;
                 
                 for (size_t i = 0; i < generationCount; i++){
                     std::cout << "Generation " << i << "..." << std::endl;
-                    std::vector<Membrane*> strain1 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize);
+                    std::vector<Membrane*> strain1 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize, mutationRate);
                     
                     // double random_weight = (rand() % 100 + 1) - 50;
                     // random_weight = random_weight/100;
                     // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
 
-                    std::vector<Membrane*> strain2 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize);
+                    std::vector<Membrane*> strain2 = produceMembraneStrain(strongestSpecimen1, strongestSpecimen2, strainSize, mutationRate);
                     strain1.push_back(strongestSpecimen1);
                     strain2.push_back(strongestSpecimen2);
 
@@ -492,28 +510,41 @@ namespace Thunder{
             }
 
 
-            Membrane* evolveOptimalMembraneMulti(std::vector<int> membraneShape, std::vector<Membrane*> geneticPopulation, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet, int generationCount = 5, int strainSize = 20, int numberOfStrongest = 2){
+            Membrane* evolveOptimalMembraneMulti(std::vector<int> membraneShape, std::vector<Membrane*> geneticPopulation, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet, int generationCount = 5, int strainSize = 20, int numberOfStrongest = 2, double mutationRate = 0.0001){
                 std::vector<Membrane*> strongestMembraneSet = geneticPopulation;
+                Membrane* strongestSpecimen = strongestMembraneSet[0];
+
 
 
                 membraneShape = membraneShape;
 
                 for (size_t i = 0; i < generationCount; i++){
                     std::cout << "Generation " << i << "..." << std::endl;
-                    std::vector<Membrane*> strain1 = produceMultiMembraneStrain(strongestMembraneSet, strainSize);
+                    std::vector<Membrane*> strain = produceMultiMembraneStrain(strongestMembraneSet, strainSize, mutationRate);
+                    
+                    strain.push_back(strongestSpecimen);
+
                     // double random_weight = (rand() % 100 + 1) - 50;
                     // random_weight = random_weight/100;
                     // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
 
-                    strongestMembraneSet = multiSelectStrongestMembrane(strain1, inputSet, desiredOutputSet, numberOfStrongest);
+                    strongestMembraneSet = multiSelectStrongestMembrane(strain, inputSet, desiredOutputSet, numberOfStrongest);
+
+                    double currentStrongestPerformance = multiEvaluateMembraneFitness(strongestSpecimen, inputSet, desiredOutputSet);
+                    double setStrongestPerformance = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet);
+                    if (setStrongestPerformance < currentStrongestPerformance){
+                        strongestSpecimen = strongestMembraneSet[0];
+                    }
 
                     for (int k = 0; k < strongestMembraneSet.size(); k++){
                         double performance = multiEvaluateMembraneFitness(strongestMembraneSet[k], inputSet, desiredOutputSet);
                         std::cout << "    -Strongest " << k << " Performance: " << performance << std::endl;
                     }
+
+                    //mutationRate = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet) / 10000;
                 }
 
-                return strongestMembraneSet[0];
+                return strongestSpecimen;
             }
 
 

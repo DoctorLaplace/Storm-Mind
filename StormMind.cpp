@@ -22,7 +22,7 @@ int main(){
     Evolver zurel;
 
 
-    std::vector<int> shapeA = {4, 16};
+    std::vector<int> shapeA = {4,  4};
 
     //cout << "Minrae:\n";
     Membrane* minrae = zurel.produceMembrane(shapeA, 1);
@@ -41,15 +41,15 @@ int main(){
 
 
 
-    std::vector<double> imp = {1, 0.5, 1, 1};
-    std::vector<double> desired = {0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1};
+    std::vector<double> imp = {1, 0, 0, 0};
+    std::vector<double> desired = {0, 0, 0, 1};
 
     std::vector<Membrane*> arkraeStrain = zurel.produceMembraneStrain(minrae, arkath);
 
     cout << "Testing Fitness..." << endl;
 
     Membrane* strongestSpecimen;
-    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 14, 200);
+    strongestSpecimen = zurel.evolveOptimalMembrane(shapeA, minrae, arkath, imp, desired, 2, 5);
 
     cout << "Strongest Membrane has been found..." << endl;
 
@@ -61,22 +61,71 @@ int main(){
     strongestSpecimen->forwardPropagateMembrane();
     strongestSpecimen->getMembraneVec().back()->displayLayer();;
 
-    // Make a function that scores a membrane
-    // based on how well it does against a batch
-    // of training data
-    //
 
-    std::vector<std::vector<double>> inSet = {imp};
-    std::vector<std::vector<double>> desiredSet = {desired};
+
+
+    std::vector<double> imp2 = {0, 1, 0, 0};
+    std::vector<double> desired2 = {0, 0, 1, 0};
+
+    std::vector<double> imp3 = {0, 0, 1, 0};
+    std::vector<double> desired3 = {0.5, 1, 0.5, 0.5};
+
+    std::vector<double> imp4 = {0, 0, 0, 1};
+    std::vector<double> desired4 = {1, 0, 0, 0};
+
+
+
+
+    std::vector<std::vector<double>> inSet = {imp, imp2, imp3, imp4};
+    std::vector<std::vector<double>> desiredSet = {desired, desired2, desired3, desired4};
 
     vector<Membrane*> population = {lemrox, minrae, arkath};
     cout << "Testing Fitness..." << endl;
 
-    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 14, 200, 50);
+    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 1200, 3, 2, 0.00005);
     cout << "Strongest Membrane has been found..." << endl;
-    cout << "Performance: " << zurel.scorePerformance(zurel.comparePerformance(desired,zurel.sampleOutputs(strongestSpecimen))) << endl;
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp,strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp2,strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp3,strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp4,strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
 
 
+
+    cout << "Total Performance: ";
+    cout << zurel.multiEvaluateMembraneFitness(strongestSpecimen, inSet, desiredSet) << endl;
+
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs({0, 0, 0, 1},strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 0){
+        cout << "First Neuron\n";
+    }
+    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 1){
+        cout << "Second Neuron\n";
+    }
+    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 2){
+        cout << "Third Neuron\n";
+    }
+    if (findLargetsIndex(zurel.sampleOutputs(strongestSpecimen))  == 3){
+        cout << "Fourth Neuron\n";
+    }
 
     return 0;
 }
