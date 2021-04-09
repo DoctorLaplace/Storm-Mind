@@ -56,7 +56,7 @@ void displayTTTBoard(vector<vector<int>> gameBoard){
     }
 }
 
-int gameFinished(vector<vector<int>> gameBoard){
+int gameFinished(vector<vector<int>> gameBoard, double &score){
     int playerMark = 1;
     cout << "Checking for winner...\n";
 
@@ -65,22 +65,27 @@ int gameFinished(vector<vector<int>> gameBoard){
     // Check if player 1 wins
     if (gameBoard[0][0] == playerMark && gameBoard[1][0] == playerMark && gameBoard[2][0] == playerMark){
         cout << "Player 1 Wins!\n";
+        score += -1;
         return 1;
     }
     if (gameBoard[0][1] == playerMark && gameBoard[1][1] == playerMark && gameBoard[2][1] == playerMark){
         cout << "Player 1 Wins!\n";
+        score += -1;
         return 1;
     }
     if (gameBoard[0][2] == playerMark && gameBoard[1][2] == playerMark && gameBoard[2][2] == playerMark){
         cout << "Player 1 Wins!\n";
+        score += -1;
         return 1;
     }
     if (gameBoard[0][0] == playerMark && gameBoard[1][1] == playerMark && gameBoard[2][2] == playerMark){
         cout << "Player 1 Wins!\n";
+        score += -1;
         return 1;
     }
     if (gameBoard[2][0] == playerMark && gameBoard[1][1] == playerMark && gameBoard[0][2] == playerMark){
         cout << "Player 1 Wins!\n";
+        score += -1;
         return 1;
     }
 
@@ -90,22 +95,27 @@ int gameFinished(vector<vector<int>> gameBoard){
     // Check if player 1 wins
     if (gameBoard[0][0] == playerMark && gameBoard[1][0] == playerMark && gameBoard[2][0] == playerMark){
         cout << "Player 2 Wins!\n";
+        score += 1;
         return 2;
     }
     if (gameBoard[0][1] == playerMark && gameBoard[1][1] == playerMark && gameBoard[2][1] == playerMark){
         cout << "Player 2 Wins!\n";
+        score += 1;
         return 2;
     }
     if (gameBoard[0][2] == playerMark && gameBoard[1][2] == playerMark && gameBoard[2][2] == playerMark){
         cout << "Player 2 Wins!\n";
+        score += 1;
         return 2;
     }
     if (gameBoard[0][0] == playerMark && gameBoard[1][1] == playerMark && gameBoard[2][2] == playerMark){
         cout << "Player 2 Wins!\n";
+        score += 1;
         return 2;
     }
     if (gameBoard[2][0] == playerMark && gameBoard[1][1] == playerMark && gameBoard[0][2] == playerMark){
         cout << "Player 2 Wins!\n";
+        score += 1;
         return 2;
     }
 
@@ -113,9 +123,12 @@ int gameFinished(vector<vector<int>> gameBoard){
     return 0;
 }
 
-int playTicTacToe(){
+int playTicTacToe(Membrane* agent, double &gameScore){
 
     cout << "Beginning Game...\n";
+    Evolver membraneController;
+    double membraneScore = 0;
+
     string userInput = "";
     bool playerTurn = 0;
     int gameover = 0, validMove = false;
@@ -150,53 +163,104 @@ int playTicTacToe(){
         }
 
         displayTTTBoard(gameBoard);
-        gameover = gameFinished(gameBoard);
+        gameover = gameFinished(gameBoard, membraneScore);
         validMove = false;
 
 
         if (playerTurn == 1 && gameover == 0 && gameover != 1){
             cout << "Player 2's Turn...\n";
             while (validMove == false){
-                cout << "X: ";
-                cin >> userInput;
-                x = stoi(userInput) - 1;
-                cout << "Y: ";
-                cin >> userInput;
-                y = stoi(userInput) - 1;
+
+                std::vector<double> gameMap;
+                for (int i = 0; i < gameBoard.size(); i++){
+                    for (int k = 0; k < gameBoard.size(); k++){
+                        gameMap.push_back(gameBoard[k][i]);
+                        cout << gameBoard[k][i] << " ";
+                    }
+                    cout << endl;
+                }
+                cout << endl;
+
+                agent->silenceMembrane();
+                membraneController.imprintInputs(gameMap, agent);
+                agent->forwardPropagateMembrane();
+                int positionNeuron = findLargetsIndex(membraneController.sampleOutputs(agent));
+                if (positionNeuron == 0){
+                    x = 0;
+                    y = 0;
+                }
+                if (positionNeuron == 1){
+                    x = 1;
+                    y = 0;
+                }
+                if (positionNeuron == 2){
+                    x = 2;
+                    y = 0;
+                }
+                if (positionNeuron == 3){
+                    x = 1;
+                    y = 0;
+                }
+                if (positionNeuron == 4){
+                    x = 1;
+                    y = 1;
+                }
+                if (positionNeuron == 5){
+                    x = 1;
+                    y = 2;
+                }
+                if (positionNeuron == 6){
+                    x = 2;
+                    y = 0;
+                }
+                if (positionNeuron == 7){
+                    x = 2;
+                    y = 1;
+                }
+                if (positionNeuron == 8){
+                    x = 2;
+                    y = 2;
+                }
+
+                // Manual Controls
+                // cout << "X: ";
+                // cin >> userInput;
+                // x = stoi(userInput) - 1;
+                // cout << "Y: ";
+                // cin >> userInput;
+                // y = stoi(userInput) - 1;
 
                 if (gameBoard[y][x] == 0){
                     gameBoard[y][x] = 2;
                     validMove = true;
+                    membraneScore += 0.1;
                     playerTurn = 0;
                 }else{
                     cout << "Invalid Move...\n";
+                    membraneScore += -0.1;
                     validMove = false;
+                    cout << "Membrane Reset\n";
+                    return -10;
                 }
             }
         }
 
         displayTTTBoard(gameBoard);
-        gameover = gameFinished(gameBoard);
+        gameover = gameFinished(gameBoard, membraneScore);
         validMove = false;
 
     }
 
+
+    gameScore = membraneScore;
     return gameover;
 
 }
 
-
-
-int main(){
-    srand(time(NULL));
-
-    cout << playTicTacToe() << endl;
-    string a;
-    cin >> a;
+// Possibly obsolete
+void evolveSoloTest(){
 
     Evolver zurel;
-
-
     std::vector<int> shapeA = {3, 4, 1};
 
     //cout << "Minrae:\n";
@@ -209,13 +273,7 @@ int main(){
     arkath->forwardPropagateMembrane();
     //arkath->displayMembrane();
 
-    //cout << "Lemrox:\n";
-    Membrane* lemrox = zurel.produceMembrane(shapeA, 0.5);
-    lemrox->forwardPropagateMembrane();
-    //lemrox->displayMembrane();
-
-
-
+    
     std::vector<double> imp = {0,0, 1};
     std::vector<double> desired = {0};
 
@@ -237,16 +295,63 @@ int main(){
     strongestSpecimen->getMembraneVec().back()->displayLayer();;
 
 
+}
 
 
-    std::vector<double> imp2 = {0, 1, 1};
-    std::vector<double> desired2 = {1};
+int main(){
+    srand(time(NULL));
 
-    std::vector<double> imp3 = {1, 0, 1};
-    std::vector<double> desired3 = {1};
 
-    std::vector<double> imp4 = {1, 1, 1};
-    std::vector<double> desired4 = {0};
+    Evolver zurel;
+    std::vector<int> shapeA = {10, 32, 16, 9};
+
+
+
+    //cout << "Minrae:\n";
+    Membrane* minrae = zurel.produceMembrane(shapeA, 1);
+    //cout << "Arkath:\n";
+    Membrane* arkath = zurel.produceMembrane(shapeA, 0);
+    //cout << "Lemrox:\n";
+    Membrane* lemrox = zurel.produceMembrane(shapeA, 0.5);
+
+    // double performance = 0;
+    // playTicTacToe(minrae, performance);
+    // cout << "Performance: " << performance << endl;
+    // cin >> performance;
+
+    Membrane* strongestSpecimen;
+
+
+    std::vector<double> imp = { 1, 0, 0,
+                                0, 0, 0,
+                                0, 0, 0,
+                                1};
+    std::vector<double> desired = { 0, 0, 0,
+                                    0, 1, 0,
+                                    0, 0, 0};
+    std::vector<double> imp2 = { 1, 1, 0,
+                                 0, 0, 0,
+                                 0, 0, 0,
+                                 1};
+    std::vector<double> desired2 = { 0, 0, 1,
+                                     0, 0, 0,
+                                     0, 0, 0};
+    std::vector<double> imp3 = { 1, 0, 0,
+                                 1, 0, 0,
+                                 0, 0, 0,
+                                 1};
+    std::vector<double> desired3 = { 0, 0, 0,
+                                     0, 0, 0,
+                                     1, 0, 0};
+    std::vector<double> imp4 = { 1, 0, 0,
+                                 0, 1, 0,
+                                 0, 0, 0,
+                                 1};
+    std::vector<double> desired4 = { 0, 0, 0,
+                                     0, 0, 0,
+                                     0, 0, 1};
+
+
 
 
 
@@ -255,38 +360,30 @@ int main(){
     std::vector<std::vector<double>> desiredSet = {desired, desired2, desired3, desired4};
 
     vector<Membrane*> population = {lemrox, minrae, arkath};
-    cout << "Testing Fitness..." << endl;
+    cout << "Evolving Membrane..." << endl;
 
-    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 35, 100, 5, 0.001);
+    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 800, 4, 2, 0.00005);
     cout << "Strongest Membrane has been found..." << endl;
-
-    strongestSpecimen->silenceMembrane();
-    zurel.imprintInputs(imp,strongestSpecimen);
-    strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayMembrane();
-
-    strongestSpecimen->silenceMembrane();
-    zurel.imprintInputs(imp2,strongestSpecimen);
-    strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayMembrane();
-
-    strongestSpecimen->silenceMembrane();
-    zurel.imprintInputs(imp3,strongestSpecimen);
-    strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayMembrane();
-
-    strongestSpecimen->silenceMembrane();
-    zurel.imprintInputs(imp4,strongestSpecimen);
-    strongestSpecimen->forwardPropagateMembrane();
-    strongestSpecimen->displayMembrane();
-
 
     //strongestSpecimen->displayMembrane();
     cout << "Total Performance: ";
     cout << zurel.multiEvaluateMembraneFitness(strongestSpecimen, inSet, desiredSet) << endl;
+    
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp, strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp2, strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+    strongestSpecimen->displayMembrane();
 
 
-    testXORMembrane(strongestSpecimen);
+    // Write a function to change the activation of 
+    // different neurons in the layers
+
+
 
 
     return 0;

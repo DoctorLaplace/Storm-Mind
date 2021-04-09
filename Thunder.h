@@ -24,6 +24,15 @@ namespace Thunder{
         return largestIndex;
     }
 
+    double sigmoid(double x){
+        double value = x, e = 2.7182818284;
+        value = pow(e, -x);
+        value += 1;
+        value = 1/value;
+
+        return value;
+    }
+
     class Neuron {
 
         public:
@@ -52,13 +61,19 @@ namespace Thunder{
                 connectionVec[connectionIndex]->connectTarget = target;
             }
 
-            void forwardPropagate(std::string mode = "threshold"){
+            void forwardPropagate(){
                 for (size_t i = 0; i < connectionVec.size(); i++){
                     //std::cout << "Impulse " << activity*connectionVec[i]->connectionWeight << " sent to: " << connectionVec[i]->connectTarget << "\n";
                     
                     if (mode == "threshold"){
                         if (activity > 0.5){
                             connectionVec[i]->connectTarget->activity += ((2*activity)-1)*connectionVec[i]->connectionWeight;
+                        }
+                    }
+                    if (mode == "sigmoid"){
+                        if (activity > 0.5){
+                            activity = sigmoid(activity);
+                            connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
                         }
                     }
                     if (mode == "none"){
@@ -90,7 +105,7 @@ namespace Thunder{
 
         private:
             double activity = 0;
-
+            std::string mode = "none";
             std::vector<connection*> connectionVec;
 
 
@@ -373,7 +388,8 @@ namespace Thunder{
                 int layerSize = lastLayer->getLayerVec().size();
                 std::vector<double> outputs;
                 for (size_t i = 0; i < layerSize; i++){
-                    outputs.push_back(lastLayer->getLayerVec()[i]->getActivity());
+                    double activity = lastLayer->getLayerVec()[i]->getActivity();
+                    outputs.push_back(activity);
                 }
                 return outputs;
             }
