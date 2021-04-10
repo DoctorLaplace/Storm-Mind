@@ -67,7 +67,9 @@ namespace Thunder{
             }
 
             void forwardPropagate(){
+                // SUPER IMPORTANT TO REDUCE OVERSATURATION
                 activity = sigmoid(activity);
+
                 for (size_t i = 0; i < connectionVec.size(); i++){
                     //std::cout << "Impulse " << activity*connectionVec[i]->connectionWeight << " sent to: " << connectionVec[i]->connectTarget << "\n";
                     

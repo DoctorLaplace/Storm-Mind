@@ -371,7 +371,7 @@ int main(){
 
 
     Evolver zurel;
-    std::vector<int> shapeA = {10, 16, 9};
+    std::vector<int> shapeA = {10, 20, 9};
 
 
 
@@ -405,19 +405,19 @@ int main(){
                                      0, 0, 0,
                                      0, 1, 0};
     std::vector<double> imp3 = { 0, 0, 1,
-                                 0, 0, 0,
-                                 0, 0, 0,
-                                 1};
-    std::vector<double> desired3 = { 0, 0, 1,
-                                     0, 0, 0,
-                                     0, 0, 0};
-    std::vector<double> imp4 = { 0, 0, 0,
-                                 0, 0, 0,
+                                 0, 1, 0,
                                  0, 0, 0,
                                  1};
-    std::vector<double> desired4 = { 0, 0, 0,
+    std::vector<double> desired3 = { 0, 0, 0,
                                      0, 0, 0,
-                                     0, 0, 0};
+                                     1, 0, 0};
+    std::vector<double> imp4 = { 1, 0, 0,
+                                 0, 0, 0,
+                                 0, 0, 1,
+                                 1};
+    std::vector<double> desired4 = { 1, 0, 0,
+                                     1, 1, 0,
+                                     1, 1, 1};
 
 
 
@@ -430,7 +430,7 @@ int main(){
     vector<Membrane*> population = {lemrox, minrae, arkath};
     cout << "Evolving Membrane..." << endl;
 
-    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 150, 4, 2, 0.0005);
+    strongestSpecimen = zurel.evolveOptimalMembraneMulti(shapeA, population, inSet, desiredSet, 440, 4, 2, 0.0005);
     cout << "Strongest Membrane has been found..." << endl;
 
     //strongestSpecimen->displayMembrane();
@@ -447,6 +447,15 @@ int main(){
     strongestSpecimen->forwardPropagateMembrane();
     strongestSpecimen->displayFinalLayer();
 
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp3, strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
+
+    strongestSpecimen->silenceMembrane();
+    zurel.imprintInputs(imp4, strongestSpecimen);
+    strongestSpecimen->forwardPropagateMembrane();
+    strongestSpecimen->displayFinalLayer();
 
     // Oversaturation was the issue. Learn about it.
 
