@@ -10,6 +10,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <random>
+#include <string>
 
 
 namespace Thunder{
@@ -50,6 +51,10 @@ namespace Thunder{
                 return activity;
             }
 
+            void setActivityType(std::string type){
+                activationType = type;
+            }
+
             void addConnection(Neuron* target, double weight){
                 connection* newCon = new connection;
                 newCon->connectionWeight = weight;
@@ -62,21 +67,22 @@ namespace Thunder{
             }
 
             void forwardPropagate(){
+                activity = sigmoid(activity);
                 for (size_t i = 0; i < connectionVec.size(); i++){
                     //std::cout << "Impulse " << activity*connectionVec[i]->connectionWeight << " sent to: " << connectionVec[i]->connectTarget << "\n";
                     
-                    if (mode == "threshold"){
+                    if (activationType == "threshold"){
                         if (activity > 0.5){
                             connectionVec[i]->connectTarget->activity += ((2*activity)-1)*connectionVec[i]->connectionWeight;
                         }
                     }
-                    if (mode == "sigmoid"){
-                        if (activity > 0.5){
-                            activity = sigmoid(activity);
-                            connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
-                        }
+                    if (activationType == "sigmoid"){
+                        
+                        activity = sigmoid(activity);
+                        connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
+                    
                     }
-                    if (mode == "none"){
+                    if (activationType == "none"){
                         connectionVec[i]->connectTarget->activity += activity*connectionVec[i]->connectionWeight;
                     }
                 } 
@@ -85,7 +91,7 @@ namespace Thunder{
             void displayConnections(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 11);
-                std::cout << "        Neuron: " << activity << std::endl;
+                std::cout << "        " << activationType << " Neuron: " << activity << std::endl;
                 for (size_t i = 0; i < connectionVec.size(); i++){
                     SetConsoleTextAttribute(hConsole, 9);
                     std::cout << "            Connection " << i << std::endl;
@@ -105,7 +111,7 @@ namespace Thunder{
 
         private:
             double activity = 0;
-            std::string mode = "none";
+            std::string activationType = "sigmoid";
             std::vector<connection*> connectionVec;
 
 
@@ -143,6 +149,11 @@ namespace Thunder{
                 }
             }
 
+            void setLayerActivityType(std::string type){
+                for (size_t i = 0; i < layerVec.size(); i++){
+                    layerVec[i]->setActivityType(type);
+                }
+            }
 
             void displayLayer(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -394,6 +405,7 @@ namespace Thunder{
                 return outputs;
             }
 
+            // Issue is here ###
             std::vector<double> comparePerformance(std::vector<double> desired, std::vector<double> actual){
                 std::vector<double> performance;
                 for (size_t i = 0; i < desired.size(); i++){
@@ -410,10 +422,16 @@ namespace Thunder{
                 return score;
             }
 
-
+            // Issue is here ###
             double evaluateMembraneFitness(Membrane* m, std::vector<double> input, std::vector<double> desiredOutput){
                 m->silenceMembrane();
                 imprintInputs(input, m);
+                m->getMembraneVec()[0]->setLayerActivityType("threshold");
+                m->getMembraneVec()[1]->setLayerActivityType("threshold");
+                m->getMembraneVec()[2]->setLayerActivityType("threshold");
+                // m->getMembraneVec()[3]->setLayerActivityType("threshold");
+                // m->getMembraneVec()[4]->setLayerActivityType("threshold");
+                // m->getMembraneVec()[5]->setLayerActivityType("sigmoid");
                 m->forwardPropagateMembrane();
                 std::vector<double> membraneOutputs = sampleOutputs(m);
                 std::vector<double> performance = comparePerformance(desiredOutput, membraneOutputs);
@@ -452,7 +470,8 @@ namespace Thunder{
             double multiEvaluateMembraneFitness(Membrane* m, std::vector<std::vector<double>> inputSet, std::vector<std::vector<double>> desiredOutputSet){
                 double totalScore = 0;
                 for (size_t i = 0; i < inputSet.size(); i++){
-                    totalScore += evaluateMembraneFitness(m, inputSet[i], desiredOutputSet[i]);
+                    double test = evaluateMembraneFitness(m, inputSet[i], desiredOutputSet[i]);
+                    totalScore += test;
                 }
                 return totalScore;
             }
@@ -562,7 +581,7 @@ namespace Thunder{
 
                     for (int k = 0; k < strongestMembraneSet.size(); k++){
                         double performance = multiEvaluateMembraneFitness(strongestMembraneSet[k], inputSet, desiredOutputSet);
-                        std::cout << "    -Strongest " << k << " Performance: " << performance << std::endl;
+                        std::cout << "    -Membrane " << k << " Performance: " << performance << std::endl;
                     }
 
                     //mutationRate = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet) / 10000;
