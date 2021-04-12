@@ -415,9 +415,16 @@ int main(){
                                  0, 0, 0,
                                  0, 0, 1,
                                  1};
-    std::vector<double> desired4 = { 1, 0, 0,
+    std::vector<double> desired4 = { 1, 0, 1,
                                      1, 1, 0,
                                      1, 1, 1};
+
+
+
+
+
+
+
 
 
 
@@ -457,7 +464,7 @@ int main(){
     strongestSpecimen->forwardPropagateMembrane();
     strongestSpecimen->displayFinalLayer();
 
-    // Oversaturation was the issue. Learn about it.
+    // Oversaturation was the issue. Seek to learn about it.
 
 
 
