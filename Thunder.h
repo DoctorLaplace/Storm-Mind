@@ -431,7 +431,7 @@ namespace Thunder{
                 m->getMembraneVec()[0]->setLayerActivityType("threshold");
                 m->getMembraneVec()[1]->setLayerActivityType("threshold");
                 m->getMembraneVec()[2]->setLayerActivityType("threshold");
-                // m->getMembraneVec()[3]->setLayerActivityType("threshold");
+                //m->getMembraneVec()[3]->setLayerActivityType("sigmoid");
                 // m->getMembraneVec()[4]->setLayerActivityType("threshold");
                 // m->getMembraneVec()[5]->setLayerActivityType("sigmoid");
                 m->forwardPropagateMembrane();
