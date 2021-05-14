@@ -110,6 +110,15 @@ namespace Thunder{
                 connectionVec = newConnections;
             }
 
+            void mutateWeight(double mutationRate = 0.001){
+                for (int i = 0; i < connectionVec.size(); i++){
+                    double random_weight = (rand() % 1000 + 1) - 500;
+                    random_weight = random_weight*mutationRate;
+                    connectionVec[i]->connectionWeight += random_weight;
+                }
+            }
+
+
 
         private:
             double activity = 0;
@@ -154,6 +163,12 @@ namespace Thunder{
             void setLayerActivityType(std::string type){
                 for (size_t i = 0; i < layerVec.size(); i++){
                     layerVec[i]->setActivityType(type);
+                }
+            }
+
+            void mutateLayerWeights(double mutationRate = 0.001){
+                for (size_t i = 0; i < layerVec.size(); i++){
+                    layerVec[i]->mutateWeight(mutationRate);
                 }
             }
 
@@ -204,6 +219,13 @@ namespace Thunder{
             }
 
 
+            void mutateMembrane(double mutationRate = 0.001){
+                for (size_t i = 0; i < membraneVec.size(); i++){
+                    membraneVec[i]->mutateLayerWeights(mutationRate);
+                }
+            }
+
+
             void displayMembrane(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 13);
@@ -243,6 +265,9 @@ namespace Thunder{
             void setSecondaryMembrane(Membrane* secondary){
                 primeMembrane = secondary;
             }
+
+            
+
 
             Neuron* geneCrossConnections(Neuron* n1, Neuron* n2, double mutationRate = 0.0001, bool showProcess = false){
                 std::vector<Thunder::Neuron::connection*> n1_connections = n1->getConnectionVec();
@@ -424,14 +449,16 @@ namespace Thunder{
                 return score;
             }
 
-            // Issue is here ###
+            // Issue is here ### 
+
+            
             double evaluateMembraneFitness(Membrane* m, std::vector<double> input, std::vector<double> desiredOutput){
                 m->silenceMembrane();
                 imprintInputs(input, m);
                 m->getMembraneVec()[0]->setLayerActivityType("threshold");
                 m->getMembraneVec()[1]->setLayerActivityType("threshold");
                 m->getMembraneVec()[2]->setLayerActivityType("threshold");
-                //m->getMembraneVec()[3]->setLayerActivityType("sigmoid");
+                //m->getMembraneVec()[3]->setLayerActivityType("threshold");
                 // m->getMembraneVec()[4]->setLayerActivityType("threshold");
                 // m->getMembraneVec()[5]->setLayerActivityType("sigmoid");
                 m->forwardPropagateMembrane();
@@ -560,34 +587,38 @@ namespace Thunder{
                 Membrane* strongestSpecimen = strongestMembraneSet[0];
 
 
-
+                bool continueGen = true;
                 membraneShape = membraneShape;
+                while (continueGen == true){
+                    for (size_t i = 0; i < generationCount; i++){
+                        std::cout << "Generation " << i << "..." << std::endl;
+                        std::vector<Membrane*> strain = produceMultiMembraneStrain(strongestMembraneSet, strainSize, mutationRate);
+                        
+                        strain.push_back(strongestSpecimen);
 
-                for (size_t i = 0; i < generationCount; i++){
-                    std::cout << "Generation " << i << "..." << std::endl;
-                    std::vector<Membrane*> strain = produceMultiMembraneStrain(strongestMembraneSet, strainSize, mutationRate);
-                    
-                    strain.push_back(strongestSpecimen);
+                        // double random_weight = (rand() % 100 + 1) - 50;
+                        // random_weight = random_weight/100;
+                        // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
 
-                    // double random_weight = (rand() % 100 + 1) - 50;
-                    // random_weight = random_weight/100;
-                    // Membrane* randomMembrane = produceMembrane(membraneShape, random_weight);
+                        strongestMembraneSet = multiSelectStrongestMembrane(strain, inputSet, desiredOutputSet, numberOfStrongest);
 
-                    strongestMembraneSet = multiSelectStrongestMembrane(strain, inputSet, desiredOutputSet, numberOfStrongest);
+                        double currentStrongestPerformance = multiEvaluateMembraneFitness(strongestSpecimen, inputSet, desiredOutputSet);
+                        double setStrongestPerformance = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet);
+                        if (setStrongestPerformance < currentStrongestPerformance){
+                            strongestSpecimen = strongestMembraneSet[0];
+                        }
 
-                    double currentStrongestPerformance = multiEvaluateMembraneFitness(strongestSpecimen, inputSet, desiredOutputSet);
-                    double setStrongestPerformance = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet);
-                    if (setStrongestPerformance < currentStrongestPerformance){
-                        strongestSpecimen = strongestMembraneSet[0];
+                        for (int k = 0; k < strongestMembraneSet.size(); k++){
+                            double performance = multiEvaluateMembraneFitness(strongestMembraneSet[k], inputSet, desiredOutputSet);
+                            std::cout << "    -Membrane " << k << " Performance: " << performance << std::endl;
+                        }
+
+                        //mutationRate = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet) / 10000;
                     }
-
-                    for (int k = 0; k < strongestMembraneSet.size(); k++){
-                        double performance = multiEvaluateMembraneFitness(strongestMembraneSet[k], inputSet, desiredOutputSet);
-                        std::cout << "    -Membrane " << k << " Performance: " << performance << std::endl;
-                    }
-
-                    //mutationRate = multiEvaluateMembraneFitness(strongestMembraneSet[0], inputSet, desiredOutputSet) / 10000;
+                    std::cout << "Continue Training? ( 0 / 1 )\n";
+                    std::cin >> continueGen;
                 }
+                
 
                 return strongestSpecimen;
             }
