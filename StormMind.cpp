@@ -9,7 +9,7 @@
 #include <time.h>       /* time */
 #include <random>
 #include <string>
-
+#include <iomanip>
 
 using namespace Neurogen;
 
@@ -17,6 +17,10 @@ using namespace Neurogen;
 
 
 int main(){
+    // Seed randomosity for mutations
+    std::srand(std::time(nullptr));
+
+
     // neuron a, b, c,
     //         d, e, f;
     
@@ -78,17 +82,26 @@ int main(){
 
     membrane knight;
 
-    vector<int> knightSHape = {2, 12, 12, 5, 3, 2};
+    vector<int> knightSHape = {2, 3, 2};
     knight.createDense(knightSHape);
-    knight.setNeuronActivbity(0,0,1);
-    knight.setNeuronActivbity(0,1,1);
+    knight.setNeuronActivity(0,0,1);
+    knight.setNeuronActivity(0,1,1);
     knight.displayMembrane();
     //knight.displayMembraneAxons();
     knight.forwardPropogateMembrane();
     knight.displayMembrane();
     knight.displayMembraneAxons();
 
-    // cout << "=================\n\n";
+    cout << "=================\n\n";
+
+    knight.zeroNeuronMembrane();
+    knight.setNeuronActivity(0,0,1);
+    knight.setNeuronActivity(0,1,1);
+    knight.mutateAxonMembrane(0.2);
+    knight.forwardPropogateMembrane();
+    knight.displayMembrane();
+    knight.displayMembraneAxons();
+
 
     // neuron a,b,c,d;
     // a.name = "a";

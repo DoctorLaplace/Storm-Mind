@@ -4,7 +4,7 @@
 #include <cmath>
 #include <random>
 #include <windows.h>
-
+#include <iomanip>
 
 using namespace std;
 
@@ -17,6 +17,13 @@ namespace Neurogen{
         value = 1/value;
         return value;
     }
+
+
+    double randomDouble(double min, double max, int precision = 6){
+        cout << setprecision(precision);
+        return min + (double)(rand()) / ((double)(RAND_MAX/(max - min)));
+    }
+
 
     class neuron{
         public:
@@ -45,6 +52,10 @@ namespace Neurogen{
                 if (type == "sigmoid"){
                     activation = sigmoid(activation);
                 }
+            }
+
+            void zeroNeuron(){
+                activation = 0;
             }
 
             void displayNeuron(){
@@ -82,11 +93,17 @@ namespace Neurogen{
                 // cout << "Neuron Activity Post: " << destination->activation << "\n";
             }
 
+            void mutateAxon(double mutationRange){
+                double mutationAmount = randomDouble(-mutationRange, mutationRange);
+                weight += mutationAmount;
+            }
+
             void displayAxon(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 14);
-                cout << "           Axon " << name << ": " << weight << "\n";
-                cout << "           Connects: " << source->name << " and " << destination->name << "\n";
+                cout << "               Axon " << name << ": " << weight << "\n";
+                SetConsoleTextAttribute(hConsole, 6);
+                cout << "                   Connects: " << source->name << " and " << destination->name << "\n";
                 SetConsoleTextAttribute(hConsole, 1);
             }
 
@@ -112,10 +129,16 @@ namespace Neurogen{
                 }
             }
 
+            void mutateAxonSet(double mutationRange){
+                for (int i = 0; i < axonVec.size(); i++){
+                    axonVec[i]->mutateAxon(mutationRange);
+                }
+            }
+
             void displayAxons(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-                SetConsoleTextAttribute(hConsole, 10);
-                cout << "       Axon Layer: \n";
+                SetConsoleTextAttribute(hConsole, 11);
+                cout << "           Axon Set: \n";
                 for (int i = 0; i < axonVec.size(); i++){
                     axon* currentAxon = axonVec[i]; 
                     currentAxon->displayAxon();
@@ -145,6 +168,12 @@ namespace Neurogen{
                 }
             }
 
+            void zeroNeuronLayer(){
+                for (int i = 0; i < neuronVec.size(); i++){
+                    neuronVec[i]->zeroNeuron();
+                }
+            }
+
             void displayNeurons(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 10);
@@ -166,7 +195,7 @@ namespace Neurogen{
         public:
             vector<axonSet*> completeLayer;
 
-            void addAxonLayer(axonSet* a){
+            void addAxonSet(axonSet* a){
                 completeLayer.push_back(a);
             }
 
@@ -176,6 +205,24 @@ namespace Neurogen{
                 }
             }
 
+            void mutateAxonLayer(double mutationRange){
+                for (int i = 0; i < completeLayer.size(); i++){
+                    completeLayer[i]->mutateAxonSet(mutationRange);
+                }
+            }
+
+            void displayAxons(){
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, 10);
+                cout << "       Axon Layer: \n";
+                for (int i = 0; i < completeLayer.size(); i++){
+                    axonSet* currentAxon = completeLayer[i]; 
+                    currentAxon->displayAxons();
+                }
+                cout << "\n";
+                SetConsoleTextAttribute(hConsole, 1);
+            }
+
     };
 
 
@@ -183,18 +230,15 @@ namespace Neurogen{
     class membrane{
 
         private:
+            // Neuron layers contain neurons
             vector<neuronLayer*> neuronLayerVec;
-            vector<axonSet*> axonSetVec;
-            vector<axonLayer*> axonLayerCompleteVec;
+            // Axon Layers contain axonSets
+            vector<axonLayer*> axonLayerVec;
             
         public:
 
             void addNeuronLayer(neuronLayer* n){
                 neuronLayerVec.push_back(n);
-            }
-
-            void addAxonLayer(axonSet* a){
-                axonSetVec.push_back(a);
             }
 
             void forwardPropogateMembrane(){
@@ -204,16 +248,24 @@ namespace Neurogen{
                     neuronLayerVec[0]->normalizeLayer();
                 }
 
-                // cout << "Neuron Vec Size: " << neuronLayerVec.size() << endl;
-                // cout << "Axon Vec Size: " << axonSetVec.size() << endl;
-
-                for (int i = 0; i < axonLayerCompleteVec.size(); i++){
-                    axonLayerCompleteVec[i]->forwardPropagate();
+                for (int i = 0; i < axonLayerVec.size(); i++){
+                    axonLayerVec[i]->forwardPropagate();
                     neuronLayerVec[i+1]->normalizeLayer();
                 }
 
             }
 
+            void mutateAxonMembrane(double mutationRange){
+                for (int i = 0; i < axonLayerVec.size(); i++){
+                    axonLayerVec[i]->mutateAxonLayer(mutationRange);
+                }
+            }
+
+            void zeroNeuronMembrane(){
+                for (int i = 0; i < neuronLayerVec.size(); i++){
+                    neuronLayerVec[i]->zeroNeuronLayer();
+                }
+            }
 
             void displayMembrane(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -230,8 +282,8 @@ namespace Neurogen{
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 13);
                 cout << "   Membrane Axons: \n";
-                for (int i = 0; i < axonSetVec.size(); i++){
-                    axonSet* currentAxonLayer = axonSetVec[i]; 
+                for (int i = 0; i < axonLayerVec.size(); i++){
+                    axonLayer* currentAxonLayer = axonLayerVec[i]; 
                     currentAxonLayer->displayAxons();
                 }
                 SetConsoleTextAttribute(hConsole, 1);
@@ -248,24 +300,23 @@ namespace Neurogen{
                     axonLayer* newAxonFilm = new axonLayer;
 
 
-                    // For each neuron in the first layer
+                    // For each neuron create a set of axons
                     for (int k = 0; k < currentLayer->neuronVec.size(); k++){
-                        axonSet* newAxonLayer = new axonSet;
+                        axonSet* newAxonSet = new axonSet;
 
-                        // For each neuron in the next layer
+                        // For each neuron in the next layer, create a connecting axon
                         for (int j = 0; j < nextLayer->neuronVec.size(); j++){
                             
                             axon* newAxon = new axon;
                             newAxon->source = currentLayer->neuronVec[k];
                             newAxon->destination = nextLayer->neuronVec[j];
                             //cout << "New Axon Connecting " << newAxon->source->name << " and " << newAxon->destination->name << "\n";
-                            newAxonLayer->addAxon(newAxon);
+                            newAxonSet->addAxon(newAxon);
                         }
-                        newAxonFilm->addAxonLayer(newAxonLayer);
-                        //axonSetVec.push_back(newAxonLayer);
+                        newAxonFilm->addAxonSet(newAxonSet);
                     }
 
-                    axonLayerCompleteVec.push_back(newAxonFilm);
+                    axonLayerVec.push_back(newAxonFilm);
 
                 }
             }
@@ -281,10 +332,10 @@ namespace Neurogen{
                     neuronLayerVec.push_back(newNeuronLayer);
                 }
                 weaveDense();
-                cout << "Axon Film Size: " << axonLayerCompleteVec.size() << endl;
+                cout << "Axon Film Size: " << axonLayerVec.size() << endl;
             }
 
-            void setNeuronActivbity(int layerIndex, int neuronIndex, double value){
+            void setNeuronActivity(int layerIndex, int neuronIndex, double value){
                 neuronLayerVec[layerIndex]->neuronVec[neuronIndex]->activation = value;
             }
 
