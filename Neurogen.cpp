@@ -25,6 +25,12 @@ namespace Neurogen{
     }
 
 
+    void printDVector(vector<double> v){
+        for (int i = 0; i < v.size(); i++){
+            cout << v[i] << endl;
+        }
+    }
+
     class neuron{
         public:
             string name = "";
@@ -36,6 +42,13 @@ namespace Neurogen{
             }
             neuron(double initialAct){
                 activation = initialAct;
+            }
+            neuron* copyDeepNeuron(){
+                neuron* clone = new neuron;
+                clone->name = name;
+                clone->type = type;
+                clone->activation = activation;
+                return clone;
             }
             ~neuron(){
                 // Deconstruct
@@ -73,7 +86,7 @@ namespace Neurogen{
             string name = "";
             neuron* source = nullptr;
             neuron* destination = nullptr;    
-            double weight = 1;
+            double weight = 0;
 
             axon(){
                 // Initialize
@@ -81,6 +94,14 @@ namespace Neurogen{
             axon(neuron* src, neuron* dest){
                 source = src;
                 destination = dest;
+            }
+            axon* copyDeepAxon(){
+                axon* clone = new axon;
+                clone->name = name;
+                clone->source = source;
+                clone->destination = destination;
+                clone->weight = weight;
+                return clone;
             }
             ~axon(){
                 // Deconstruct
@@ -112,10 +133,19 @@ namespace Neurogen{
 
     class axonSet{
 
-        private:
+        public:
             vector<axon*> axonVec;
 
-        public:
+            axonSet* copyDeepAxonSet(){
+                axonSet* clone = new axonSet;
+
+                for (int i = 0; i < axonVec.size(); i++){
+                    axon* currentAxonClone = axonVec[i]->copyDeepAxon();
+                    clone->addAxon(currentAxonClone);
+                }
+
+                return clone;
+            }
 
             void addAxon(axon* d){
                 axonVec.push_back(d);
@@ -157,6 +187,18 @@ namespace Neurogen{
         public:
             vector<neuron*> neuronVec;
 
+            neuronLayer* copyDeepNeuronLayer(){
+                neuronLayer* clone = new neuronLayer;
+
+                for (int i = 0; i < neuronVec.size(); i++){
+                    neuron* currentNeuronClone = neuronVec[i]->copyDeepNeuron();
+                    clone->addNeuron(currentNeuronClone);
+                    //currentNeuronClone->name = neuronVec[i]->name + "*clone*"; // Builds up massive strings, here for testing purposes
+                }
+
+                return clone;
+            }
+
             void addNeuron(neuron* d){
                 neuronVec.push_back(d);
             }
@@ -188,12 +230,24 @@ namespace Neurogen{
     };
 
 
-
     class axonLayer{
         private:
 
         public:
+
             vector<axonSet*> completeLayer;
+
+            axonLayer* copyDeepAxonLayer(){
+                axonLayer* clone = new axonLayer;
+
+                for (int i = 0; i < completeLayer.size(); i++){
+                    axonSet* currentAxonSetClone = completeLayer[i]->copyDeepAxonSet();
+                    clone->addAxonSet(currentAxonSetClone);
+                }
+
+                return clone;
+            }
+
 
             void addAxonSet(axonSet* a){
                 completeLayer.push_back(a);
@@ -229,20 +283,56 @@ namespace Neurogen{
 
     class membrane{
 
-        private:
+        public:
             // Neuron layers contain neurons
             vector<neuronLayer*> neuronLayerVec;
             // Axon Layers contain axonSets
             vector<axonLayer*> axonLayerVec;
+
+            string name = "";
             
         public:
+
+            // Copies the shape, neurons, and activations of aneuron membrane
+            membrane* copyDeepNeuronMembrane(){
+                membrane* clone = new membrane;
+
+                for (int i = 0; i < neuronLayerVec.size(); i++){
+                    neuronLayer* currentNeuronLayerClone = neuronLayerVec[i]->copyDeepNeuronLayer();
+                    clone->addNeuronLayer(currentNeuronLayerClone);
+                }
+
+                return clone;
+            }
+
+            // Takes the membrane's existing axons and neurons, and weaves them in a dense architecture
+            void copyAxonWeights(membrane* target){
+                for(int i = 0; i < axonLayerVec.size(); i++){ 
+                    for(int j = 0; j < axonLayerVec[i]->completeLayer.size(); j++){
+                        for(int k = 0; k < axonLayerVec[i]->completeLayer[j]->axonVec.size(); k++){
+                            axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight = target->axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight;
+                        }
+                    }
+                }
+            }
+
+            // Produces a copy of a dense network
+            membrane* copyDenseMembrane(membrane* target){
+                membrane* clone = target->copyDeepNeuronMembrane();
+                clone->weaveDense();
+                clone->copyAxonWeights(target);
+                return clone;
+            }
 
             void addNeuronLayer(neuronLayer* n){
                 neuronLayerVec.push_back(n);
             }
 
-            void forwardPropogateMembrane(){
-                bool normalizeFirstLayer = false;
+            void addAxonLayer(axonLayer* a){
+                axonLayerVec.push_back(a);
+            }
+
+            void forwardPropogateMembrane(bool normalizeFirstLayer = false){
 
                 if (normalizeFirstLayer == true){
                     neuronLayerVec[0]->normalizeLayer();
@@ -270,7 +360,7 @@ namespace Neurogen{
             void displayMembrane(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 13);
-                cout << "   Membrane Neurons: \n";
+                cout << "   Membrane " << name << " Neurons: \n";
                 for (int i = 0; i < neuronLayerVec.size(); i++){
                     neuronLayer* currentNeuronLayer = neuronLayerVec[i]; 
                     currentNeuronLayer->displayNeurons();
@@ -281,7 +371,7 @@ namespace Neurogen{
             void displayMembraneAxons(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 13);
-                cout << "   Membrane Axons: \n";
+                cout << "   Membrane " << name << " Axons: \n";
                 for (int i = 0; i < axonLayerVec.size(); i++){
                     axonLayer* currentAxonLayer = axonLayerVec[i]; 
                     currentAxonLayer->displayAxons();
@@ -310,6 +400,7 @@ namespace Neurogen{
                             axon* newAxon = new axon;
                             newAxon->source = currentLayer->neuronVec[k];
                             newAxon->destination = nextLayer->neuronVec[j];
+                            newAxon->name = newAxon->source->name + " -> " + newAxon->destination->name;
                             //cout << "New Axon Connecting " << newAxon->source->name << " and " << newAxon->destination->name << "\n";
                             newAxonSet->addAxon(newAxon);
                         }
@@ -332,17 +423,100 @@ namespace Neurogen{
                     neuronLayerVec.push_back(newNeuronLayer);
                 }
                 weaveDense();
-                cout << "Axon Film Size: " << axonLayerVec.size() << endl;
+                //cout << "Axon Film Size: " << axonLayerVec.size() << endl;
             }
 
             void setNeuronActivity(int layerIndex, int neuronIndex, double value){
                 neuronLayerVec[layerIndex]->neuronVec[neuronIndex]->activation = value;
             }
 
+            // Sets the activations of a neuronLayer equal to an imprint
+            void imprintLayer(int layerIndex, vector<double> imprint){
+                for (int i = 0; i < neuronLayerVec[layerIndex]->neuronVec.size(); i++){
+                    neuronLayerVec[layerIndex]->neuronVec[i]->activation = imprint[i];
+                }
+            }
+
+            vector<double> returnLayerActivity(int layerIndex){
+                vector<double> activity;
+
+                for (int i = 0; i < neuronLayerVec[layerIndex]->neuronVec.size(); i++){
+                    activity.push_back(neuronLayerVec[layerIndex]->neuronVec[i]->activation);
+                }
+
+                return activity;
+            } 
+
+
     };
 
 
+    class architect{
 
+        public:
+
+            // Inputs data into the membrane and uses it to calculate and return output data.
+            void computeMembrane(membrane* m, vector<double> input){
+                m->zeroNeuronMembrane();
+                m->imprintLayer(0, input);
+                m->forwardPropogateMembrane();
+            }
+
+            double calculateLastLayerError(membrane* m, vector<double> desiredOutput){
+                // Outputs are assumed to be the final neuron layer of a membrane
+                vector<double> membraneOutputs = m->returnLayerActivity(m->neuronLayerVec.size() - 1);
+                double error = 0;
+
+                for (int i = 0; i < desiredOutput.size(); i++){
+                    error += abs(membraneOutputs[i] - desiredOutput[i]);
+                }
+
+                return error;
+            }
+
+            void evolveSupervised(membrane* seedMembrane, vector<double> input, vector<double> desiredOutput, double mutationRange = 0.1, int population = 5, int generations = 5){
+                
+                
+                vector<membrane*> genePool;
+                membrane* strongestSpecimen = seedMembrane;
+
+                // Use seed membrane to establish score baseline
+                genePool.push_back(strongestSpecimen);
+                computeMembrane(strongestSpecimen, input);
+                double strongestScore = calculateLastLayerError(strongestSpecimen, input);;
+                
+
+                for (int g = 0; g < generations; g++){
+                    cout << "Generation " << g << "...\n";
+                    for (int i = 0; i < population; i++){
+                        membrane* newMembrane = strongestSpecimen->copyDenseMembrane(strongestSpecimen);
+                        newMembrane->mutateAxonMembrane(mutationRange);
+                        genePool.push_back(newMembrane);
+                    }
+
+                    for (int i = 0; i < genePool.size(); i++){
+                        computeMembrane(genePool[i], input);
+                        double score  = calculateLastLayerError(genePool[i], input);
+                        if (score < strongestScore){
+                            //cout << "New strongest membrane!\n";
+                            strongestSpecimen = genePool[i];
+                            strongestScore = score;
+                        }
+                    }
+                    cout << "Membrane score: " << strongestScore << "\n\n";
+
+                }
+
+                cout << "Training has ended...\n";
+
+
+
+            }
+
+            
+
+
+    };
 
 
 

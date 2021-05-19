@@ -80,27 +80,60 @@ int main(){
 
     cout << "=================\n\n";
 
-    membrane knight;
+    architect ark;
 
-    vector<int> knightSHape = {2, 3, 2};
-    knight.createDense(knightSHape);
-    knight.setNeuronActivity(0,0,1);
-    knight.setNeuronActivity(0,1,1);
-    knight.displayMembrane();
-    //knight.displayMembraneAxons();
-    knight.forwardPropogateMembrane();
-    knight.displayMembrane();
-    knight.displayMembraneAxons();
+    membrane everus;
+    everus.name = "Everus";
+
+
+    vector<int> nnShape = {2, 4, 2};
+    vector<double> imprint = {0.1, 0.9};
+    vector<double> desired = {1, 0};
+    everus.createDense(nnShape);
+
+    ark.evolveSupervised(&everus, imprint, desired, 0.2, 100, 150);
+
+
 
     cout << "=================\n\n";
 
-    knight.zeroNeuronMembrane();
-    knight.setNeuronActivity(0,0,1);
-    knight.setNeuronActivity(0,1,1);
-    knight.mutateAxonMembrane(0.2);
-    knight.forwardPropogateMembrane();
-    knight.displayMembrane();
-    knight.displayMembraneAxons();
+
+
+
+    // architect nebulus;
+
+    // membrane knight;
+    // knight.name = "Knight";
+
+
+    // vector<int> knightShape = {5, 3, 2};
+    // vector<double> imprint = {0.2, 0.5, 1, 0.4, 0.1};
+    // vector<double> output;
+    // knight.createDense(knightShape);
+    // nebulus.computeMembrane(&knight, imprint);
+    // output = knight.returnLayerActivity(2);
+
+
+    // printDVector(output);
+    // knight.mutateAxonMembrane(0.5);
+    // nebulus.computeMembrane(&knight, imprint);
+    // output = knight.returnLayerActivity(2);
+    // printDVector(output);
+    // knight.displayMembrane();
+    // knight.displayMembraneAxons();
+
+
+
+
+    // cout << "========CLONE ZONE=========\n\n";
+
+    // membrane* witch = knight.copyDenseMembrane(&knight);
+    // witch->name = "witch";
+    // witch->mutateAxonMembrane(0.3);
+    // nebulus.computeMembrane(witch, imprint);
+    // output = witch->returnLayerActivity(2);
+    // witch->displayMembrane();
+    // witch->displayMembraneAxons();
 
 
     // neuron a,b,c,d;
@@ -109,14 +142,14 @@ int main(){
     // c.name = "c";
     // d.name = "d";
 
-    // axon ad(&a, &d), bd(&b, &d), cd(&c, &d);
-    // axonSet nexus;
-    // nexus.addAxon(&ad);
-    // nexus.addAxon(&bd);
-    // nexus.addAxon(&cd);
-    // nexus.forwardPropagate();
-
-
+    // neuron* e = a.copyNeuron();
+    // cout << e->name << endl;
+    // a.name = "a mod";
+    // cout << e->name << endl;
+    // cout << a.name << endl;
+    // e->name = "e";
+    // cout << e->name << endl;
+    // cout << a.name << endl;
 
 
     return 0;
