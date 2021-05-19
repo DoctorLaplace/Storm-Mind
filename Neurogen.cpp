@@ -474,7 +474,22 @@ namespace Neurogen{
                 return error;
             }
 
-            void evolveSupervised(membrane* seedMembrane, vector<double> input, vector<double> desiredOutput, double mutationRange = 0.1, int population = 5, int generations = 5){
+
+
+            double supervisedSetError(membrane* m, vector<vector<double>> inputSet, vector<vector<double>> desiredOutputSet){
+                double totalError = 0;
+
+                for (int i = 0; i < inputSet.size(); i++){
+                    computeMembrane(m, inputSet[i]);
+                    double error  = calculateLastLayerError(m, desiredOutputSet[i]);
+                    totalError += error;
+                } 
+
+                return totalError;
+            }
+
+
+             membrane* evolveSupervised(membrane* seedMembrane, vector<vector<double>> inputSet, vector<vector<double>> desiredOutputSet, double mutationRange = 0.1, int population = 5, int generations = 5){
                 
                 
                 vector<membrane*> genePool;
@@ -482,8 +497,7 @@ namespace Neurogen{
 
                 // Use seed membrane to establish score baseline
                 genePool.push_back(strongestSpecimen);
-                computeMembrane(strongestSpecimen, input);
-                double strongestScore = calculateLastLayerError(strongestSpecimen, input);;
+                double strongestScore = supervisedSetError(strongestSpecimen, inputSet, desiredOutputSet);
                 
 
                 for (int g = 0; g < generations; g++){
@@ -495,21 +509,21 @@ namespace Neurogen{
                     }
 
                     for (int i = 0; i < genePool.size(); i++){
-                        computeMembrane(genePool[i], input);
-                        double score  = calculateLastLayerError(genePool[i], input);
+                        double score  = supervisedSetError(genePool[i], inputSet, desiredOutputSet);
                         if (score < strongestScore){
                             //cout << "New strongest membrane!\n";
                             strongestSpecimen = genePool[i];
                             strongestScore = score;
                         }
                     }
+                    genePool.clear();
                     cout << "Membrane score: " << strongestScore << "\n\n";
 
                 }
 
                 cout << "Training has ended...\n";
 
-
+                return strongestSpecimen;
 
             }
 

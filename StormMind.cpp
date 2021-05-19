@@ -86,13 +86,32 @@ int main(){
     everus.name = "Everus";
 
 
-    vector<int> nnShape = {2, 4, 2};
-    vector<double> imprint = {0.1, 0.9};
-    vector<double> desired = {1, 0};
+    vector<int> nnShape = {3, 8, 8, 1};
+    vector<double> imp1 = {0, 0, 1};
+    vector<double> imp2 = {1, 0, 1};
+    vector<double> imp3 = {0, 1, 1};
+    vector<double> imp4 = {1, 1, 1};
+    vector<double> des1 = {0};
+    vector<double> des2 = {1};
+    vector<double> des3 = {1};
+    vector<double> des4 = {0};
+    vector<vector<double>> imprintSet = {imp1, imp2, imp3, imp4};
+    vector<vector<double>> desiredSet = {des1, des2, des3, des4};
+
+
+
     everus.createDense(nnShape);
 
-    ark.evolveSupervised(&everus, imprint, desired, 0.2, 100, 150);
+    membrane* vera = ark.evolveSupervised(&everus, imprintSet, desiredSet, 0.2, 40, 300);
 
+    ark.computeMembrane(vera, imp1);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp2);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp3);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp4);
+    vera->displayMembrane();
 
 
     cout << "=================\n\n";
