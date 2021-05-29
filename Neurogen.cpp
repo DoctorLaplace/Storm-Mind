@@ -33,6 +33,31 @@ namespace Neurogen{
         }
     }
 
+    void printIVector(vector<int> v){
+        for (int i = 0; i < v.size(); i++){
+            cout << v[i] << endl;
+        }
+    }
+
+    // Takes an integer vector and returns a sorted vector
+    vector<int> sortIntVector(vector<int> v){
+        vector<int> sortedVec;
+
+        while (v.size() > 0){
+            int indexSmallest = 0;
+            for (int i = 0; i < v.size(); i++){
+                if (v[i] < v[indexSmallest]){
+                    indexSmallest = i;
+                }
+            }
+            sortedVec.push_back(v[indexSmallest]);
+            v.erase(v.begin() + indexSmallest);
+        }
+
+        return sortedVec;
+    }
+
+
     class neuron{
         public:
             string name = "";
@@ -322,8 +347,20 @@ namespace Neurogen{
             vector<axonLayer*> axonLayerVec;
             // The name of the membrane
             string name = "";
+            // The fitness of the membrane
+            double fitness = INFINITE;
             
         public:
+
+            // Constructor for the membrane class
+            membrane(){
+                // Enpty Constructor
+            }
+
+            // Constructor for the membrane class with name assignment
+            membrane(string n){
+                name = n;
+            }
 
             // Deconstructor for the membrane class
             ~membrane(){
@@ -397,7 +434,7 @@ namespace Neurogen{
                 // Rounds down to 2 decimal points by default
                 // To gain more p[recision a new technique would need development]
                 int probablityInt = percentMutated*100;
-                cout << probablityInt << endl;
+                // cout << probablityInt << endl;
                 int probabiliityCheck;
                  
                 for(int i = 0; i < axonLayerVec.size(); i++){ 
@@ -419,6 +456,15 @@ namespace Neurogen{
                 clone->copyAxonWeights(target);
                 //clone->name = target->name + "-clone";
                 return clone;
+            }
+
+            // Returns the shape of a membrane's neuron layout
+            vector<int> getMembraneShape(){
+                vector<int> shape;
+                for (int i = 0; i < neuronLayerVec.size(); i++){
+                    shape.push_back(neuronLayerVec[i]->neuronVec.size());
+                }
+                return shape;
             }
 
             // Adds a neuron layer to the membrane
@@ -490,6 +536,14 @@ namespace Neurogen{
                     axonLayer* currentAxonLayer = axonLayerVec[i]; 
                     currentAxonLayer->displayAxons();
                 }
+                SetConsoleTextAttribute(hConsole, 1);
+            }
+
+            // Displays the fitness of the membrane
+            void displayMembraneFitness(){
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, 13);
+                cout << "   Membrane " << name << " fitness: " << fitness << "\n";
                 SetConsoleTextAttribute(hConsole, 1);
             }
 
@@ -727,28 +781,118 @@ namespace Neurogen{
             }
 
             // Genetic evolution method
-            membrane* GEM(membrane* seedMembrane){
-                membrane* strongestMembrane = seedMembrane->copyDenseMembrane(seedMembrane);
-
-                // Rank the fitness of a group of membranes
-                // Select a percent of them based on fitness distribution
-                // Cross breed the selected
+            vector<membrane*> GEM(vector<membrane*> seedPopulation, vector<vector<double>> inputSet, vector<vector<double>> desiredOutputSet){
+                
+                // Cross breed the population
                 // Produce a new population of descendant membranes
                 // Mutate them
                 // Rank fitness
+                // Select a percent of them based on fitness distribution
+                // Return new population
+
+                vector<int> memShape = seedPopulation[0]->getMembraneShape();
+                vector<membrane*> elitePopulation = seedPopulation;
+
+
+                // Gene cross membrane Population
+                vector<membrane*> geneCrossPopulation;  
+                int geneCrossSize = 1000;                  
+                for (int i = 0; i < geneCrossSize; i++){
+                    int selectedPartner1 = rand() % seedPopulation.size();
+                    int selectedPartner2 = rand() % seedPopulation.size();
+                    membrane* parent1 = seedPopulation[selectedPartner1];
+                    membrane* parent2 = seedPopulation[selectedPartner2];
+
+                    //cout << "Crossing " << parent1->name << " and " << parent2->name << "\n";
+
+
+                    // Stray membrane cleanup needed for optimizaytion
+                    membrane* newMembrane = new membrane;
+                    //newMembrane->name = "" ;//parent1->name + parent2->name;
+                    newMembrane->createDense(memShape);
+                    newMembrane->copyGeneCrossAxonWeights(parent1, parent2);
+                    geneCrossPopulation.push_back(newMembrane);
+                }
+
+
+                // Mutate crossbreeds
+                double percentMutated = 0.5;
+                double mutationRange = 0.8;
+                for (int i = 0; i < geneCrossPopulation.size(); i++){
+                    geneCrossPopulation[i]->mutatePartOfAxonWeights(mutationRange, percentMutated);
+                }
+
+
+                // Determine the fitness of each membrane
+                for (int i = 0; i < geneCrossPopulation.size(); i++){
+                    geneCrossPopulation[i]->fitness = supervisedSetError(geneCrossPopulation[i], inputSet, desiredOutputSet);
+                }
+
+
+                // Create sorted fitness vector, first is most fit
+                vector<membrane*> fitPopulation;
+                while (geneCrossPopulation.size() > 0){
+                    int indexSmallest = 0;
+                    for (int i = 0; i < geneCrossPopulation.size(); i++){
+                        if (geneCrossPopulation[i]->fitness < geneCrossPopulation[indexSmallest]->fitness){
+                            indexSmallest = i;
+                        }
+                    }
+                    fitPopulation.push_back(geneCrossPopulation[indexSmallest]);
+                    geneCrossPopulation.erase(geneCrossPopulation.begin() + indexSmallest);
+                }
+
+
+                // Select top specimens for new population
+                double percentSelected = 0.2;
+                int selectionSize = fitPopulation.size() * percentSelected;
+                // New population is composed of top specimens
+                vector<membrane*> selectPopulation;
+                for (int i = 0; i < selectionSize; i++){
+                    // Candidates are selected from the start of the vector (where fitness should be highest)
+                    selectPopulation.push_back(fitPopulation[0]);
+                    fitPopulation.erase(fitPopulation.begin());
+                    
+                }
+
+                // Delete Remaining in fitPopulation / Memory Cleanup
+                for (int i = 0; i < fitPopulation.size(); i++){
+                    // Candidates are selected from the start of the vector (where fitness should be highest)
+                    deleteBucket.push_back(fitPopulation[i]);
+                }
+                emptyDeleteBucket();
+
+
+                elitePopulation = selectPopulation;
+
+                cout << elitePopulation[0]->fitness << "\n";
+
+
+
+                return elitePopulation;
 
 
 
 
-
-
-
-
-
-                return strongestMembrane;
             }
 
+            void displayPopulationFinalMembranes(vector<membrane*> population){
+                for (int i = 0; i < population.size(); i++){
+                    population[i]->displayMembraneFinalLayer();
+                }
+            }
 
+            void displayPopulationAxons(vector<membrane*> population){
+                for (int i = 0; i < population.size(); i++){
+                    population[i]->displayMembraneAxons();
+                }
+            }
+
+            void displayPopulationFitnesses(vector<membrane*> population){
+                for (int i = 0; i < population.size(); i++){
+                    population[i]->displayMembraneFitness();
+                }
+            }
 
     };
 

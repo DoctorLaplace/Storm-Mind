@@ -29,7 +29,7 @@ int main(){
     everus.name = "Everus";
 
 
-    vector<int> nnShape = {3, 8, 8, 4};
+    vector<int> nnShape = {3, 8, 4};
     vector<double> imp1 = {1, 0, 0, 0, 1};
     vector<double> imp2 = {0, 1, 0, 0, 1};
     vector<double> imp3 = {0, 0, 1, 0, 1};
@@ -45,43 +45,48 @@ int main(){
 
     everus.createDense(nnShape);
 
-    membrane* vera = ark.evolveSupervised(&everus, imprintSet, desiredSet, 0.5, 5, 100);
+    membrane* vera = ark.evolveSupervised(&everus, imprintSet, desiredSet, 0.5, 2, 2);
+    vera->name = "Vera";
 
-    ark.computeMembrane(vera, imp1);
+    /*ark.computeMembrane(vera, imp1);
     vera->displayMembrane();
     ark.computeMembrane(vera, imp2);
     vera->displayMembrane();
     ark.computeMembrane(vera, imp3);
     vera->displayMembrane();
     ark.computeMembrane(vera, imp4);
-    vera->displayMembrane();
+    vera->displayMembrane();*/
 
     cout << "=========NEXT MEM========\n\n";
 
-    membrane zyg, wer, gon, zygwer;
+    membrane zyg("zyg"), wer("wer"), gon("gon"), zygwergon("zygwergon");
     zyg.createDense(nnShape);
     zyg.setAllAxonWeights(1);
     wer.createDense(nnShape);
     wer.setAllAxonWeights(0);
     gon.createDense(nnShape);
     gon.setAllAxonWeights(-1);
-    zygwer.createDense(nnShape);
-    zygwer.copyGeneCrossAxonWeights(&zyg, &wer);
-    zygwer.copyGeneCrossAxonWeights(&zygwer, &gon);
-    zygwer.mutatePartOfAxonWeights(0.1, 0.1);
-    zygwer.displayMembraneAxons();
+    zygwergon.createDense(nnShape);
+    zygwergon.copyGeneCrossAxonWeights(&zyg, &wer);
+    zygwergon.copyGeneCrossAxonWeights(&zygwergon, &gon);
+    zygwergon.mutatePartOfAxonWeights(0.1, 0.1);
+    //zygwergon.displayMembraneAxons();
 
 
-    //membrane* arev = ark.evolveSupervised(&everus, imprintSet, desiredSet, 0.5, 10, 10);
+    vector<membrane*> initPop = {&zyg, &wer, &gon};
+    vector<membrane*> megaspecimens, gen2;
+    
+    //ark.displayPopulationAxons(initPop);
+    megaspecimens = ark.GEM(initPop, imprintSet, desiredSet);
+    gen2 = ark.GEM(megaspecimens, imprintSet, desiredSet);
+    for (int i = 0; i < 200; i++)
+        gen2 = ark.GEM(gen2, imprintSet, desiredSet);
 
-    //membrane* alpheon = ark.SEAR(&everus, imprintSet,  desiredSet, 0.9, 40, 100, 0.1, 8);
-
-    //ark.computeMembrane(alpheon, imp1);
-    //alpheon->displayMembraneFinalLayer();
-
-    // NN seems to get caught in a local minimum quite often on XOR test.
-    // genetic cross over would help with this issue!
-
+    cout << "--\n";
+    //ark.displayPopulationAxons(megaspecimens);
+    cout << "--\n";
+    //ark.displayPopulationAxons(gen2);
+    ark.displayPopulationFitnesses(gen2);
 
 
     return 0;
