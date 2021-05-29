@@ -796,7 +796,7 @@ namespace Neurogen{
 
                 // Gene cross membrane Population
                 vector<membrane*> geneCrossPopulation;  
-                int geneCrossSize = 1000;                  
+                int geneCrossSize = 500;                  
                 for (int i = 0; i < geneCrossSize; i++){
                     int selectedPartner1 = rand() % seedPopulation.size();
                     int selectedPartner2 = rand() % seedPopulation.size();
@@ -816,7 +816,7 @@ namespace Neurogen{
 
 
                 // Mutate crossbreeds
-                double percentMutated = 0.5;
+                double percentMutated = 0.7;
                 double mutationRange = 0.8;
                 for (int i = 0; i < geneCrossPopulation.size(); i++){
                     geneCrossPopulation[i]->mutatePartOfAxonWeights(mutationRange, percentMutated);
@@ -844,7 +844,7 @@ namespace Neurogen{
 
 
                 // Select top specimens for new population
-                double percentSelected = 0.2;
+                double percentSelected = 0.05;
                 int selectionSize = fitPopulation.size() * percentSelected;
                 // New population is composed of top specimens
                 vector<membrane*> selectPopulation;

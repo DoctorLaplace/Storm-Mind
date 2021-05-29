@@ -29,7 +29,7 @@ int main(){
     everus.name = "Everus";
 
 
-    vector<int> nnShape = {3, 8, 4};
+    vector<int> nnShape = {5, 8, 4};
     vector<double> imp1 = {1, 0, 0, 0, 1};
     vector<double> imp2 = {0, 1, 0, 0, 1};
     vector<double> imp3 = {0, 0, 1, 0, 1};
@@ -79,7 +79,7 @@ int main(){
     //ark.displayPopulationAxons(initPop);
     megaspecimens = ark.GEM(initPop, imprintSet, desiredSet);
     gen2 = ark.GEM(megaspecimens, imprintSet, desiredSet);
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 100; i++)
         gen2 = ark.GEM(gen2, imprintSet, desiredSet);
 
     cout << "--\n";
@@ -97,9 +97,14 @@ int main(){
 
     - Adding species restarts seems to help with falling into local minima.
 
+    - Add elitism so backwards evolution does not occur
 
-
-
+    -   There is an important trade study within the percent of 
+        survivors passed on to a new generation. Less seems to
+        avoid hitting a local minima in the gene pool population.
+        There is almost an evolutionary momentum, and if a population
+        surivives for too long with few deaths, they become homogenized
+        and thus cannot evolve quickly when they do need to evolve.
 
 
 
