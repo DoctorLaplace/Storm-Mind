@@ -29,15 +29,15 @@ int main(){
     everus.name = "Everus";
 
 
-    vector<int> nnShape = {5, 8, 4};
-    vector<double> imp1 = {1, 0, 0, 0, 1};
-    vector<double> imp2 = {0, 1, 0, 0, 1};
-    vector<double> imp3 = {0, 0, 1, 0, 1};
-    vector<double> imp4 = {0, 0, 0, 1, 1};
-    vector<double> des1 = {0, 1, 0, 0};
-    vector<double> des2 = {0, 0, 1, 0};
-    vector<double> des3 = {0, 0, 0, 1};
-    vector<double> des4 = {1, 0, 0, 0};
+    vector<int> nnShape = {6, 4, 6};
+    vector<double> imp1 = {0, 0, 0, 0, 1, 1};
+    vector<double> imp2 = {0, 0, 0, 1, 1, 1};
+    vector<double> imp3 = {0, 0, 1, 1, 1, 1};
+    vector<double> imp4 = {0, 1, 1, 1, 1, 1};
+    vector<double> des1 = {0, 0, 0, 0, 1, 1};
+    vector<double> des2 = {0, 0, 0, 1, 1, 1};
+    vector<double> des3 = {0, 0, 1, 1, 1, 1};
+    vector<double> des4 = {0, 1, 1, 1, 1, 1};
     vector<vector<double>> imprintSet = {imp1, imp2, imp3, imp4};
     vector<vector<double>> desiredSet = {des1, des2, des3, des4};
 
@@ -79,7 +79,7 @@ int main(){
     //ark.displayPopulationAxons(initPop);
     megaspecimens = ark.GEM(initPop, imprintSet, desiredSet);
     gen2 = ark.GEM(megaspecimens, imprintSet, desiredSet);
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 140; i++)
         gen2 = ark.GEM(gen2, imprintSet, desiredSet);
 
     cout << "--\n";
@@ -87,7 +87,7 @@ int main(){
     cout << "--\n";
     //ark.displayPopulationAxons(gen2);
     ark.displayPopulationFitnesses(gen2);
-
+    ark.displayPopulationFinalMembranes(gen2);
 
     return 0;
 }
@@ -106,7 +106,9 @@ int main(){
         surivives for too long with few deaths, they become homogenized
         and thus cannot evolve quickly when they do need to evolve.
 
-
+    -   Scaling the mutation rate based on the axon weight scale shows
+        promise in avoiding mutations being nullified by massively 
+        weighted values.
 
 
 

@@ -115,6 +115,7 @@ namespace Neurogen{
             neuron* source = nullptr;
             neuron* destination = nullptr;    
             double weight = 0;
+            string mutationMode = "percent";
 
             axon(){
                 // Initialize
@@ -144,7 +145,16 @@ namespace Neurogen{
             }
 
             void mutateAxon(double mutationRange){
-                double mutationAmount = randomDouble(-mutationRange, mutationRange);
+                double mod = 1;
+
+                if (mutationMode == "percent"){
+                    mod = weight+0.01;
+                }
+                if (mutationMode == "proportional"){
+                    mod = 1;
+                }
+
+                double mutationAmount = randomDouble(-mutationRange*mod, mutationRange*mod);
                 weight += mutationAmount;
             }
 
@@ -797,6 +807,8 @@ namespace Neurogen{
                 // Gene cross membrane Population
                 vector<membrane*> geneCrossPopulation;  
                 int geneCrossSize = 500;                  
+
+
                 for (int i = 0; i < geneCrossSize; i++){
                     int selectedPartner1 = rand() % seedPopulation.size();
                     int selectedPartner2 = rand() % seedPopulation.size();
@@ -844,7 +856,7 @@ namespace Neurogen{
 
 
                 // Select top specimens for new population
-                double percentSelected = 0.05;
+                double percentSelected = 0.01;
                 int selectionSize = fitPopulation.size() * percentSelected;
                 // New population is composed of top specimens
                 vector<membrane*> selectPopulation;
