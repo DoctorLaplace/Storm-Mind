@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Neurogen.h"
-#include "Thunder.h"
+#include "Legacy_Code\Thunder.h"
 #include <windows.h>
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */

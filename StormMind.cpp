@@ -1,12 +1,12 @@
 
 #include <iostream>
 #include "Neurogen.h"
-#include "Thunder.h"
+#include "Legacy_Code\Thunder.h"
 #include "StormMindTests.cpp"
 #include <windows.h>
-#include <stdio.h>      /* printf, scanf, puts, NULL */
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
+#include <stdio.h>          // printf, scanf, puts, NULL
+#include <stdlib.h>         // srand, rand
+#include <time.h>           // time
 #include <random>
 #include <string>
 #include <iomanip>
@@ -78,14 +78,13 @@ int main(){
 
     // Create the initial population
     vector<membrane*> initPop = {&zyg, &wer, &gon};
-    vector<membrane*> megaspecimens, gen2;
+    vector<membrane*> megaspecimens;
 
     // Train a fit membrane against training data.
     megaspecimens = ark.GEM(initPop, imprintSet, desiredSet);
-    gen2 = ark.GEM(megaspecimens, imprintSet, desiredSet);
     for (int i = 0; i < 30; i++){
         cout << "Generation " << i << ": ";
-        gen2 = ark.GEM(gen2, imprintSet, desiredSet, 0.8, 0.4);
+        megaspecimens = ark.GEM(megaspecimens, imprintSet, desiredSet, 0.8, 0.4);
     }
        
 
@@ -94,9 +93,9 @@ int main(){
 
     for (double i = -10; i < 10; i++){
         testIn[0] = i/2;
-        ark.computeMembrane(gen2[0], testIn);
-        double Y = gen2[0]->neuronLayerVec[2]->neuronVec[0]->activation;
-
+        ark.computeMembrane(megaspecimens[0], testIn);
+        
+        double Y = megaspecimens[0]->neuronLayerVec[2]->neuronVec[0]->activation;
         cout << "(" << i/2 << " , " << Y << ") ";
         if (i != 9){
             cout << ",";
