@@ -1,7 +1,7 @@
 # Storm-Mind v1.0
-A cybernetic program aimed at generating intelligent problem solving.
+A machine learning program aimed at generating intelligent problem solving.
 
-The current c++ package supports neuroevolutionary training for deep learning models. Future developments are aimed at model and training diversity, with targeted fields being Reinforcement Learning, RESNETS, and Deep Belief Networks.
+The current c++ library supports evolutionary training for neural networks. Future developments are aimed at model and training diversity, with targeted fields being Reinforcement Learning, Gene Speciation, and Deep Belief Networks.
 
 This project serves as an experimental research package for developing lightweight c++ neural networks.
 
