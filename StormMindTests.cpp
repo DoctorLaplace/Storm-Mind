@@ -596,7 +596,61 @@ void testAsync(){
     fut3.get();
 }
 
+void testSupervised(){
+    architect ark;
 
+
+    membrane everus;
+    everus.name = "Everus";
+
+
+    vector<int> nnShape = {2, 60, 1};
+    vector<double>  imp1 = {-4, 1},
+                    imp2 = {-3, 1},
+                    imp3 = {-2, 1},
+                    imp4 = {-1, 1},
+                    imp5 = {0, 1},
+                    imp6 = {1, 1},
+                    imp7 = {2, 1},
+                    imp8 = {3, 1},
+                    imp9 = {4, 1},
+                    imp10 = {5, 1};
+
+
+                    
+    vector<double>  des1 = {Neurogen::sinFunction(-4)},
+                    des2 = {Neurogen::sinFunction(-3)},
+                    des3 = {Neurogen::sinFunction(-2)},
+                    des4 = {Neurogen::sinFunction(-1)},
+                    des5 = {Neurogen::sinFunction(0)},
+                    des6 = {Neurogen::sinFunction(1)},
+                    des7 = {Neurogen::sinFunction(2)},
+                    des8 = {Neurogen::sinFunction(3)},
+                    des9 = {Neurogen::sinFunction(4)},
+                    des10 = {Neurogen::sinFunction(5)};
+                    
+
+
+
+    vector<vector<double>> imprintSet = {imp1, imp2, imp3, imp4, imp5, imp6, imp7, imp8, imp9, imp10};
+    vector<vector<double>> desiredSet = {des1, des2, des3, des4, des5, des6, des7, des8, des9, des10};
+
+
+
+    everus.createDense(nnShape);
+
+    membrane* vera = ark.evolveSupervised(&everus, imprintSet, desiredSet, 0.5, 2, 2);
+    vera->name = "Vera";
+
+    /*ark.computeMembrane(vera, imp1);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp2);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp3);
+    vera->displayMembrane();
+    ark.computeMembrane(vera, imp4);
+    vera->displayMembrane();*/
+}
 
 int old_main(){
     
