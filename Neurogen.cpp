@@ -5,7 +5,9 @@
 #include <random>
 #include <windows.h>
 #include <iomanip>
-#include <algorithm>    // std::remove_if
+#include <algorithm>        // std::remove_if
+#include <future>           // std::async, std::future
+#include <iostream>
 
 using namespace std;
 
@@ -19,6 +21,17 @@ namespace Neurogen{
         value = 1/value;
         return value;
     }
+
+    // Sin function
+    double sinFunction(double x){
+        return (sin(x) + 1)/2;
+    }
+
+    // Weird function
+    double weirdFunction(double x){
+        return pow(x,2)/50;
+    }
+
 
     // Produces a random double between a specified minimum and maximum
     double randomDouble(double min, double max, int precision = 6){
@@ -83,6 +96,9 @@ namespace Neurogen{
             }
 
             void normalize(){
+                if (type == "none"){
+                    // raw activation
+                }
                 if (type == "linear"){
                     if (activation > 0.5){
                         activation = (2*activation)-1;
@@ -115,6 +131,7 @@ namespace Neurogen{
             neuron* source = nullptr;
             neuron* destination = nullptr;    
             double weight = 0;
+            double bias = 0;
             string mutationMode = "percent";
 
             axon(){
@@ -130,6 +147,7 @@ namespace Neurogen{
                 clone->source = source;
                 clone->destination = destination;
                 clone->weight = weight;
+                clone->bias = 0;
                 return clone;
             }
             ~axon(){
@@ -140,13 +158,14 @@ namespace Neurogen{
             void forwardActivation(){
                 // cout << "Propagating " << source->name << " --( " << weight <<" )--> " << destination->name << "\n";
                 // cout << "Neuron Activity: " << destination->activation << "\n";
-                destination->activation += source->activation*weight;
+                destination->activation += (source->activation*weight) + bias;
                 // cout << "Neuron Activity Post: " << destination->activation << "\n";
             }
 
             void mutateAxon(double mutationRange){
                 double mod = 1;
 
+                // Percent is vulnerable to getting trappped at zero. Add to mutationAmount rather than mod...
                 if (mutationMode == "percent"){
                     mod = weight+0.01;
                 }
@@ -156,12 +175,14 @@ namespace Neurogen{
 
                 double mutationAmount = randomDouble(-mutationRange*mod, mutationRange*mod);
                 weight += mutationAmount;
+                double biasAmount = randomDouble(-mutationRange/10, mutationRange/10);
+                bias += biasAmount;
             }
 
             void displayAxon(){
                 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
                 SetConsoleTextAttribute(hConsole, 14);
-                cout << "               Axon " << name << ": " << weight << "\n";
+                cout << "               Axon " << name << ": " << weight << "  :  " << bias << "\n";
                 SetConsoleTextAttribute(hConsole, 6);
                 cout << "                   Connects: " << source->name << " and " << destination->name << "\n";
                 SetConsoleTextAttribute(hConsole, 1);
@@ -402,6 +423,7 @@ namespace Neurogen{
                     for(int j = 0; j < axonLayerVec[i]->completeLayer.size(); j++){
                         for(int k = 0; k < axonLayerVec[i]->completeLayer[j]->axonVec.size(); k++){
                             axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight = target->axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight;
+                            axonLayerVec[i]->completeLayer[j]->axonVec[k]->bias = target->axonLayerVec[i]->completeLayer[j]->axonVec[k]->bias;
                         }
                     }
                 }
@@ -423,6 +445,7 @@ namespace Neurogen{
                             }
 
                             axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight = selectedParent->axonLayerVec[i]->completeLayer[j]->axonVec[k]->weight;
+                            axonLayerVec[i]->completeLayer[j]->axonVec[k]->bias = selectedParent->axonLayerVec[i]->completeLayer[j]->axonVec[k]->bias;
                         }
                     }
                 }
@@ -791,7 +814,7 @@ namespace Neurogen{
             }
 
             // Genetic evolution method
-            vector<membrane*> GEM(vector<membrane*> seedPopulation, vector<vector<double>> inputSet, vector<vector<double>> desiredOutputSet){
+            vector<membrane*> GEM(vector<membrane*> seedPopulation, vector<vector<double>> inputSet, vector<vector<double>> desiredOutputSet, double percentMutated = 0.5, double mutationRange = 0.5){
                 
                 // Cross breed the population
                 // Produce a new population of descendant membranes
@@ -806,7 +829,7 @@ namespace Neurogen{
 
                 // Gene cross membrane Population
                 vector<membrane*> geneCrossPopulation;  
-                int geneCrossSize = 500;                  
+                int geneCrossSize = 600;                  
 
 
                 for (int i = 0; i < geneCrossSize; i++){
@@ -828,8 +851,8 @@ namespace Neurogen{
 
 
                 // Mutate crossbreeds
-                double percentMutated = 0.7;
-                double mutationRange = 0.8;
+                double percentToMutated = percentMutated;
+                double mutationSizeRange = mutationRange;
                 for (int i = 0; i < geneCrossPopulation.size(); i++){
                     geneCrossPopulation[i]->mutatePartOfAxonWeights(mutationRange, percentMutated);
                 }
@@ -856,7 +879,7 @@ namespace Neurogen{
 
 
                 // Select top specimens for new population
-                double percentSelected = 0.01;
+                double percentSelected = 0.025;
                 int selectionSize = fitPopulation.size() * percentSelected;
                 // New population is composed of top specimens
                 vector<membrane*> selectPopulation;
@@ -909,16 +932,105 @@ namespace Neurogen{
     };
 
 
+    class dimensionalSim{
+
+        public:
+            int xp = 0;
+            int yp = 0;
+            double xvel = 0;
+            double yvel = 0;
+
+            double curx = 0;
+            double cury = 0;
+
+            dimensionalSim(){
+                curx = randomDouble(-100, 100);
+                cury = randomDouble(-100, 100);
+            }
+
+            void updatePhysics(){
+                curx += xvel;
+                cury += yvel;
+            }
+
+            void updateControl(){
+                if (GetKeyState('A') & 0x8000){
+                    xvel += -0.1;
+                }
+                if (GetKeyState('D') & 0x8000){
+                    xvel += 0.1;
+                }
+            }
+
+            void update(){
+                updateControl();
+                updatePhysics();
+            }
+
+            void displayCoords(){
+                cout << "X: " << curx << "\nY: " << cury << "\n";
+            }
+
+    };
 
 
 
+    class runtimeUniverse{
+
+        private:
+            int internalVal = 0; 
+
+        public:
+
+            void ticker(){
+                int count = 0;
+                while (count <= 5000){
+                    cout << count << "\n";
+                    count += 1;
+                    internalVal = count;
+                    Sleep(100);
+                }
+            }
+
+            void session(){
+                std::cout << "Session Started...\n";
+                bool sessionActive = true;
+                while (sessionActive){
+                    if (GetKeyState('A') & 0x8000){
+                        cout << internalVal << "\n";
+                    }
+                    Sleep(10);
+                }
+                std::cout << "Session Ended...\n";
+            }
+
+            void dimSim(){
+
+                std::cout << "Dimensional Sim Started...\n";
+
+                dimensionalSim sim;
+
+                bool sessionActive = true;
+                while (sessionActive){
+                    cout << "Tick\n";
+                    sim.update();
+                    sim.displayCoords();
+                    Sleep(100);
+                }
 
 
 
+                std::cout << "Dimensional Sim Ended...\n";
+            }
 
 
 
+    };
 
+    
+
+
+    
 
 
 

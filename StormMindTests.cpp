@@ -586,6 +586,17 @@ void evolveSoloTest(){
 
 }
 
+void testAsync(){
+    runtimeUniverse universe, mara;
+
+    std::future<void> fut2 = std::async(runtimeUniverse::ticker, &mara);
+    std::future<void> fut3 = std::async(runtimeUniverse::session, &mara);
+
+    fut2.get();
+    fut3.get();
+}
+
+
 
 int old_main(){
     
